@@ -8,6 +8,7 @@
 .data
 W: .quad 640
 H: .quad 360
+TIME:  .quad 0
 game_name:  .asciz "Asteroids in Assembly"
 
 .text
@@ -39,6 +40,7 @@ main:
 		call    BeginDrawing
 		movq    $0xFFFF00000,     %rdi
 		call    gameLoop
+		incq    TIME
 		call    EndDrawing
 
 

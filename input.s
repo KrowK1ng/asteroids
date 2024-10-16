@@ -1,11 +1,15 @@
-.global input_up
-.global input_down
-.global input_left
-.global input_right
-.global input_x
+# KEY_RIGHT           = 262,      // Key: Cursor right
+# KEY_LEFT            = 263,      // Key: Cursor left
+# KEY_DOWN            = 264,      // Key: Cursor down
+# KEY_UP              = 265,      // Key: Cursor up
+
+
+.global KRIGHT
+.global KLEFT
+.global KDOWN
+.global KUP
 .data
-input_up:   .byte 0
-input_down: .byte 0
-input_right:.byte 0
-input_left: .byte 0
-input_x:    .byte 0
+KRIGHT:     .quad 262
+KLEFT:      .quad 263
+KDOWN:      .quad 264
+KUP:        .quad 265
