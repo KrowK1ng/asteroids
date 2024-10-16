@@ -4,6 +4,7 @@
 .global putDot
 .global W
 .global H
+.global TIME
 
 .data
 W: .quad 640

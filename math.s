@@ -2,11 +2,14 @@
 .global _sin
 .global _cos
 .global DPI
-
+.global pseudorand
 
 .data
 PI:  .long 0x3243F
 DPI: .long 0x6487E
+SEED:	.quad 0x06969
+PRIME:	.quad 0x15B
+ADD:	.quad 0x539
 
 .text
 
@@ -174,4 +177,20 @@ _cos:
 
 	movq    %rbp,   %rsp
 	popq    %rbp
+	ret
+
+# f pseudorand()
+pseudorand:
+	push	%rbp	
+	movq	%rsp,	%rbp
+
+	movq	TIME,	%rdi
+	imulq	SEED,	%rdi
+
+	imulq	PRIME,	%rax
+	addq	ADD,	%rax
+	movq	%rax,	SEED
+
+	movq	%rbp, %rsp
+	popq	%rbp
 	ret
