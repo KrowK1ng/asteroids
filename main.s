@@ -1,4 +1,9 @@
 .global main
+.global readKeyCode
+.global putLine
+.global putDot
+.global W
+.global H
 
 .data
 W: .quad 640
@@ -6,21 +11,37 @@ H: .quad 360
 game_name:  .asciz "Asteroids in Assembly"
 
 .text
+
+readKeyCode:
+	movq    $0, %rax
+	ret
+
+putDot:
+	movq    $0, %rax
+	ret
+
+
 main:
-	pushq %rbp
-	movq  %rsp,     %rbp
+	pushq   %rbp
+	movq    %rsp,       %rbp
 
 	# void InitWindow(int width, int height, const char *title);
-	movq  W,            %rdi
-	movq  H,            %rsi
-	movq  $game_name,   %rdx
-	call  InitWindow
+	movl    W,          %edi
+	movl    H,          %esi
+	movq    $game_name, %rdx
+	call    InitWindow
+
+	movq    $40,        %rdi
+	call    SetTargetFPS
+	call    gameInit
 
 	.main_loop:
 		call    BeginDrawing
 		movq    $0xFFFF00000,     %rdi
-		call    ClearBackground;
+		call    gameLoop
 		call    EndDrawing
+
+
 		call    WindowShouldClose
 		cmpq    $0,     %rax
 		je      .main_loop
@@ -28,8 +49,8 @@ main:
 	call    CloseWindow
 
 
-	movq  %rbp,     %rsp
-	popq  %rbp
+	movq    %rbp,       %rsp
+	popq    %rbp
 
-	movq  $0,       %rax
+	movq    $0,         %rax
 	ret
