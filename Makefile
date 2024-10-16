@@ -1,4 +1,5 @@
 include config.mk
+FILES=main.s game.s player.s math.s input.s
 
-game: main.s
-	gcc -no-pie ${CFLAGS} main.s -o game ${LIBS}
+game: ${FILES}
+	gcc -no-pie ${CFLAGS} ${FILES} -o game ${LIBS}
