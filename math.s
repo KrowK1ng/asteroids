@@ -2,6 +2,7 @@
 .global _sin
 .global _cos
 .global DPI
+.global PI
 .global pseudorand
 
 .data

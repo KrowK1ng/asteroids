@@ -42,6 +42,7 @@ test_text:   .asciz "The quick brown fox jumps over the lazy dog. 0010"
 .text
 gameInit:
 	call player_init
+	call meteor_init_types
 
 	ret
 
@@ -161,6 +162,10 @@ gameLoop:
 	call    DrawPixel
 	call    player_draw
 
+	movq    $meteors,   %rdi
+	addq    $16,        %rdi
+	call    a_draw
+
 	movq    $test_text, %rdi
 	movq    $player,    %rax
 	movl    (%rax),     %esi
@@ -172,6 +177,12 @@ gameLoop:
 	movl    %esi,       %eax
 
 	# call draw_text
+
+#TEMP
+	movq    $player,    %rax
+	movl    16(%rax),   %ecx
+	movq    $meteors,   %rax
+	movl    %ecx,       32(%rax)
 
 	movq    %rbp,   %rsp
 	popq    %rbp
