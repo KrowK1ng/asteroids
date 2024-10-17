@@ -32,6 +32,12 @@ along with gamelib-x64. If not, see <http://www.gnu.org/licenses/>.
 		cmpb    $1,     %al
 .endm
 
+.macro checkPressed key
+		movl    \key,   %edi
+		call    IsKeyPressed
+		cmpb    $1,     %al
+.endm
+
 .file "src/game/game.s"
 
 .global gameInit
@@ -51,6 +57,9 @@ gameInit:
 # Player Draw
 # Meteorite Movement
 # Meteorite Draw
+# Bullet Movement
+# Bullet Draw
+# Bullet Remove
 gameLoop:
 	pushq   %rbp
 	movq    %rsp,   %rbp
@@ -65,11 +74,19 @@ gameLoop:
 	movq    $0xFF0000000,     %rdi
 	call    ClearBackground
 
-
 	checkDown   $'F
 	jne     .gl_fullscreen_skip
 	call    ToggleFullscreen
 .gl_fullscreen_skip:
+
+	checkPressed   $'X
+	jne     .gl_bullet_init_skip
+	movq    $player,    %rax
+	movl    (%rax),     %edi
+	movl    4(%rax),    %esi
+	movl    16(%rax),   %edx
+	call    b_init
+.gl_bullet_init_skip:
 
 	checkDown   $'Q
 	movb    %al,        %dil
@@ -237,13 +254,92 @@ gameLoop:
 	jnz     .gl_a_draw_loop
 .gl_a_draw_loop_end:
 
-	# call draw_text
 
-# TODO TEMP
-/*	movq    $player,    %rax*/
-/*	movl    16(%rax),   %ecx*/
-/*	movq    $meteors,   %rax*/
-/*	movl    %ecx,       32(%rax)*/
+	movq    $bullets,         %r12
+	movq    (%r12),           %rbx      # rbx = b_cnt
+	addq    $8,               %r12      # r12 = b_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_b_move_loop_end
+.gl_b_move_loop:
+	# x += xspeed
+	movl    8(%r12),          %eax
+	addl    %eax,             (%r12)
+
+	# y += yspeed
+	movl    12(%r12),         %eax
+	addl    %eax,             4(%r12)
+
+	addq    $16,              %r12      # r12 = b_pnt++ BSIZE
+	decq    %rbx
+	jnz     .gl_b_move_loop
+.gl_b_move_loop_end:
+
+
+	movq    $bullets,         %r12
+	movq    (%r12),           %rbx      # rbx = b_cnt
+	addq    $8,               %r12      # r12 = b_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_b_draw_loop_end
+.gl_b_draw_loop:
+
+	movl    (%r12),           %eax
+	cdqe
+	shrq    $16,              %rax
+	movl    %eax,             %edi
+
+	movl    4(%r12),          %eax
+	cdqe
+	shrq    $16,              %rax
+	movl    %eax,             %esi
+
+	movl    $2,               %edx
+	movl    $2,               %ecx
+
+	movl    $0xFFFFFFFF,      %r8d
+	call    DrawRectangle
+
+	addq    $16,              %r12      # r12 = b_pnt++ BSIZE
+	decq    %rbx
+	jnz     .gl_b_draw_loop
+.gl_b_draw_loop_end:
+
+	movq    $bullets,         %r12
+	movq    (%r12),           %rbx      # rbx = b_cnt
+	addq    $8,               %r12      # r12 = b_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_b_remove_loop_end
+.gl_b_remove_loop:
+	movl    W,                %eax
+	shll    $16,              %eax
+	cmpl    %eax,             (%r12)
+	jge     .gl_b_rloop_remove
+	cmpl    $0,               (%r12)
+	jl      .gl_b_rloop_remove
+
+	movl    H,                %eax
+	shll    $16,              %eax
+	cmpl    %eax,             4(%r12)
+	jge     .gl_b_rloop_remove
+	cmpl    $0,               4(%r12)
+	jl      .gl_b_rloop_remove
+
+	jmp     .gl_b_rloop_pre_end
+.gl_b_rloop_remove:
+	movq    %r12,             %rdi
+	call    b_remove
+	subq    $16,              %r12      # r12 = b_pnt-- BSIZE
+
+.gl_b_rloop_pre_end:
+	addq    $16,              %r12      # r12 = b_pnt++ BSIZE
+	decq    %rbx
+	jnz     .gl_b_remove_loop
+.gl_b_remove_loop_end:
+
+
+	# call draw_text
 
 	movq    $1,     %rax
 
