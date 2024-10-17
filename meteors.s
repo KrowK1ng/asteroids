@@ -12,7 +12,7 @@
 .data
 MMETEORS: .quad 256
 meteors:
-	.quad 0, 0
+	.quad 0, 0     # cnt and total size (both <= 256)
 	.space 12288
 
 # struct asteroid {
@@ -37,14 +37,29 @@ meteor_init_types:
 	movq    %rsp,       %rbp
 
 	movq    $meteors,   %rdi
+	movq    $2,         (%rdi)    # a_cnt = 2
 	addq    $16,        %rdi
 
 	movq    $mtype_1,   %rsi
 	movq    %rsi,       24(%rdi)
 	movl    $0x1000000,         (%rdi)
 	movl    $0x1000000,         4(%rdi)
+	movl    $0x10000,         8(%rdi)
+	movl    $-0x1f000,         12(%rdi)
 	movl    $0,         16(%rdi)
-	movb    $3,         32(%rdi)
+	movl    $0x1000,         20(%rdi)
+	movb    $1,         32(%rdi)
+
+	addq    $48,        %rdi
+	movq    $mtype_1,   %rsi
+	movq    %rsi,       24(%rdi)
+	movl    $0x2000000,         (%rdi)
+	movl    $0x10000,         4(%rdi)
+	movl    $-0x10000,         8(%rdi)
+	movl    $0xf000,         12(%rdi)
+	movl    $0,         16(%rdi)
+	movl    $0x1000,         20(%rdi)
+	movb    $2,         32(%rdi)
 
 	movq    %rbp,   %rsp
 	popq    %rbp
@@ -86,11 +101,11 @@ a_draw:
 	movl    16(%r12),   %edi
 	call    _sin
 
-	# r15 -= mul(eax, p_y)
+	# r15 += mul(eax, p_y)
 	movl    %eax,       %edi
 	movl    4(%r13),    %esi
 	call    mul
-	subl    %eax,       %r15d
+	addl    %eax,       %r15d
 
 	# eax = r15 * size
 	movl    %r15d,      %eax
@@ -120,11 +135,11 @@ a_draw:
 	movl    16(%r12),   %edi
 	call    _cos
 
-	# r15 -= mul(eax, p_y)
+	# r15 += mul(eax, p_y)
 	movl    %eax,       %edi
 	movl    4(%r13),    %esi
 	call    mul
-	subl    %eax,       %r15d
+	addl    %eax,       %r15d
 
 	# eax = r15 * size
 	movl    %r15d,      %eax
@@ -157,46 +172,6 @@ a_draw:
 	subq    $16,         %r14
 	decq    %rbx
 	jnz     .a_draw_loop2
-
-
-/*	movq    %r13,   %rcx*/
-/*	trans   8(%rcx)*/
-/*	movq    %rax,       %rdi*/
-/**/
-/*	trans   12(%rcx)*/
-/*	movq    %rax,       %rsi*/
-/**/
-/*	trans   16(%rcx)*/
-/*	movq    %rax,       %r8*/
-/**/
-/*	trans   20(%rcx)*/
-/*	movq    %rax,       %r9*/
-/**/
-/*	movq    %r8, %rdx*/
-/*	movq    %r9, %rcx*/
-/**/
-/*	movq    $0xFFFFFFFF, %r8*/
-/*	call    DrawLine*/
-/**/
-/*	movq    $mtype_1,   %rcx*/
-/*	trans   16(%rcx)*/
-/*	movq    %rax,       %rdi*/
-/**/
-/*	trans   20(%rcx)*/
-/*	movq    %rax,       %rsi*/
-/**/
-/*	trans   24(%rcx)*/
-/*	movq    %rax,       %r8*/
-/**/
-/*	trans   28(%rcx)*/
-/*	movq    %rax,       %r9*/
-/**/
-/*	movq    %r8, %rdx*/
-/*	movq    %r9, %rcx*/
-/**/
-/*	movq    $0xFFFFFFFF, %r8*/
-/*	call    DrawLine*/
-
 
 
 	movq    -8(%rbp),   %r12

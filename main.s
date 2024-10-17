@@ -37,10 +37,12 @@ main:
 	call    SetTargetFPS
 	call    gameInit
 
-	.main_loop:
+.main_loop:
 		call    BeginDrawing
 		movq    $0xFFFF00000,     %rdi
 		call    gameLoop
+		cmpq    $0,     %rax
+		je      .main_loop_end
 		incq    TIME
 		call    EndDrawing
 
@@ -48,6 +50,7 @@ main:
 		call    WindowShouldClose
 		cmpq    $0,     %rax
 		je      .main_loop
+.main_loop_end:
 
 	call    CloseWindow
 

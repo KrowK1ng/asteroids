@@ -46,9 +46,21 @@ gameInit:
 
 	ret
 
+# Player Input
+# Player Movement
+# Player Draw
+# Meteorite Movement
+# Meteorite Draw
 gameLoop:
 	pushq   %rbp
 	movq    %rsp,   %rbp
+
+	subq    $48,        %rsp
+	movq    %r12,       -8(%rbp)
+	movq    %r13,       -16(%rbp)
+	movq    %r14,       -24(%rbp)
+	movq    %r15,       -32(%rbp)
+	movq    %rbx,       -40(%rbp)
 
 	movq    $0xFF0000000,     %rdi
 	call    ClearBackground
@@ -58,6 +70,12 @@ gameLoop:
 	jne     .gl_fullscreen_skip
 	call    ToggleFullscreen
 .gl_fullscreen_skip:
+
+	checkDown   $'Q
+	movb    %al,        %dil
+	movq    $0,         %rax
+	cmpb    $1,         %dil
+	je      .gl_end
 
 	checkDown   KLEFT
 	jne     .end_increase_angle
@@ -154,6 +172,7 @@ gameLoop:
 	subl    %edi,    4(%rax)
 .pos_y_end:
 
+# TODO: TEMP, draws center of the player
 	movl    player,  %edi
 	movl    4(%rax), %esi
 	shrl    $16,     %edi
@@ -162,27 +181,78 @@ gameLoop:
 	call    DrawPixel
 	call    player_draw
 
-	movq    $meteors,   %rdi
-	addq    $16,        %rdi
+	movq    $meteors,         %r12
+	movq    (%r12),           %rbx      # rbx = a_cnt
+	addq    $16,              %r12      # r12 = a_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_a_move_loop_end
+.gl_a_move_loop:
+	# x += speedx
+	movl    8(%r12),    %eax
+	addl    %eax,       (%r12)
+
+	# y += speedy
+	movl    12(%r12),   %eax
+	addl    %eax,       4(%r12)
+
+	# angle += speeda;
+	movl    20(%r12),   %eax
+	addl    %eax,       16(%r12)
+
+	# if (angle > DPI) angle -= DPI
+	movl    DPI,        %eax
+	cmpl    %eax,       16(%r12)
+	jle     .gl_a_angle_not_bigger
+	subl    %eax,       16(%r12)
+.gl_a_angle_not_bigger:
+
+	# if (angle < 0) angle += DPI
+	movl    DPI,        %eax
+	cmpl    $0,         16(%r12)
+	jge     .gl_a_angle_not_smaller
+	addl    %eax,       16(%r12)
+.gl_a_angle_not_smaller:
+
+	addq    $48,              %r12      # r12 = a_pnt++
+	decq    %rbx
+	jnz     .gl_a_move_loop
+.gl_a_move_loop_end:
+
+
+
+
+	movq    $meteors,         %r12
+	movq    (%r12),           %rbx      # rbx = a_cnt
+	addq    $16,              %r12      # r12 = a_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_a_draw_loop_end
+.gl_a_draw_loop:
+	movq    %r12,             %rdi
 	call    a_draw
 
-	movq    $test_text, %rdi
-	movq    $player,    %rax
-	movl    (%rax),     %esi
-	movl    4(%rax),    %edx
-	shrl    $16,        %esi
-	shrl    $16,        %edx
-	addl    $20,        %esi
-	subl    $20,        %edx
-	movl    %esi,       %eax
+	addq    $48,              %r12      # r12 = a_pnt++
+	decq    %rbx
+	jnz     .gl_a_draw_loop
+.gl_a_draw_loop_end:
 
 	# call draw_text
 
-#TEMP
-	movq    $player,    %rax
-	movl    16(%rax),   %ecx
-	movq    $meteors,   %rax
-	movl    %ecx,       32(%rax)
+# TODO TEMP
+/*	movq    $player,    %rax*/
+/*	movl    16(%rax),   %ecx*/
+/*	movq    $meteors,   %rax*/
+/*	movl    %ecx,       32(%rax)*/
+
+	movq    $1,     %rax
+
+.gl_end:
+	movq    -8(%rbp),   %r12
+	movq    -16(%rbp),  %r13
+	movq    -24(%rbp),  %r14
+	movq    -32(%rbp),  %r15
+	movq    -40(%rbp),  %rbx
 
 	movq    %rbp,   %rsp
 	popq    %rbp
