@@ -64,6 +64,8 @@ menu_loop:
 .ml_loop_notBk:
 	cmpl    $257,       %eax
 	jne     .ml_loop2
+	cmpb    $0,         (pname)
+	je     .ml_loop2
 
 	call    gameInit
 	movb    $2,         gstate

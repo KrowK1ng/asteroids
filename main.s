@@ -14,8 +14,8 @@ TIME:  .quad 0
 draw_col:   .long 0
 game_name:  .asciz "Asteroids in Assembly"
 pname:
-	.byte  0, 16
-	.space  17
+	.byte  0, 15  # NAMESIZE
+	.space  16    # NAMESIZE
 gstate: .byte 0   # 0 -> sboard (scoreboard)
                   # 1 -> menu (write name)
                   # 2 -> game
@@ -88,10 +88,8 @@ main:
 
 	movq    $40,        %rdi
 	call    SetTargetFPS
-	call    gameInit
-
-# TODO TEMP
-	call    menu_init
+	call    HideCursor
+	call    sboard_init
 
 .main_loop:
 		call    BeginDrawing

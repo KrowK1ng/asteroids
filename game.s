@@ -24,7 +24,8 @@
 .global gameInit
 .global gameLoop
 
-test_text:   .asciz "The quick brown fox jumps over the lazy dog. 0010"
+.data
+UIH: .long 40
 
 .text
 gameInit:
@@ -41,6 +42,7 @@ gameInit:
 # Bullet Movement
 # Bullet Draw
 # Bullet Remove
+# TODO Draw UI
 gameLoop:
 	pushq   %rbp
 	movq    %rsp,   %rbp
@@ -154,20 +156,28 @@ gameLoop:
 	subl    %edi,    (%rax)
 .pos_x_end:
 
+	movl    UIH,     %edi
+	shll    $16,     %edi
+	cmpl    %edi,    4(%rax)
+	jl      .pos_y_small
 	movl    H,       %edi
 	shll    $16,     %edi
-	cmpl    $0,      4(%rax)
-	jl      .pos_y_small
 
 	cmpl    %edi,    4(%rax)
 	jge     .pos_y_big
 	jmp     .pos_y_end
 
 .pos_y_small:
+	subl    %edi,    4(%rax)
+	movl    H,       %edi
+	shll    $16,     %edi
 	addl    %edi,    4(%rax)
 	jmp     .pos_y_end
 .pos_y_big:
 	subl    %edi,    4(%rax)
+	movl    UIH,     %edi
+	shll    $16,     %edi
+	addl    %edi,    4(%rax)
 .pos_y_end:
 
 # TODO: TEMP, draws center of the player
@@ -319,8 +329,23 @@ gameLoop:
 	jnz     .gl_b_remove_loop
 .gl_b_remove_loop_end:
 
-	movq    $1,     %rax
+	movq    $0,     %rdi
+	movq    $0,     %rsi
+	movl    W,      %edx
+	movl    UIH,    %ecx
 
+	movl    $0xFF000000,    %r8d
+	call    DrawRectangle
+
+	movq    $pname, %rdi
+	addq    $2,     %rdi
+	movl    $24,    %esi
+	movl    $8,     %edx
+	movl    $0xFFFFFFFF,      %ecx
+	call    draw_text
+
+
+	movq    $1,     %rax
 .gl_end:
 	movq    -8(%rbp),   %r12
 	movq    -16(%rbp),  %r13
