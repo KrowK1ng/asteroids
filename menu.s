@@ -69,6 +69,14 @@ menu_loop:
 
 	call    gameInit
 	movb    $2,         gstate
+
+#TODO TEMP
+/*	movq    $s_fmt,     %rdi*/
+/*	movq    $score,     %rsi*/
+/*	movq    $0,         %rax*/
+/*	call    scanf*/
+/*	call    sboard_add_score*/
+/*	movb    $0,         gstate*/
 	popq    %rax
 	ret
 

@@ -6,11 +6,13 @@
 .global TIME
 .global pname
 .global gstate
+.global score
 
 .data
 W: .quad 640
 H: .quad 360
 TIME:  .quad 0
+score:     .long 0
 draw_col:   .long 0
 game_name:  .asciz "Asteroids in Assembly"
 pname:

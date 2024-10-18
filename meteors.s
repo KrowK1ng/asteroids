@@ -46,8 +46,11 @@ meteor_init_types:
 	movl    $0x1000000,         4(%rdi)
 	movl    $0x10000,         8(%rdi)
 	movl    $-0x1f000,         12(%rdi)
-	movl    $0,         16(%rdi)
-	movl    $0x1000,         20(%rdi)
+	movl    $0x1100,         16(%rdi)
+	movl    $0,         12(%rdi)
+	movl    $0,         8(%rdi)
+
+	movl    $0,         20(%rdi)
 	movb    $1,         32(%rdi)
 
 	addq    $48,        %rdi
@@ -162,12 +165,30 @@ a_draw:
 	movq    (%r13),     %rbx
 
 .a_draw_loop2:
+/*	movq    (%r14),      %rdi*/
+/*	movq    -8(%r14),    %rsi*/
+/*	movq    -16(%r14),   %rdx*/
+/*	movq    -24(%r14),   %rcx*/
+/*	movq    $0xFFFFFFFF, %r8*/
+/*	call    DrawLine*/
+
+#TODO BEGIN
+	movq    $player,     %rax
+	movl    (%rax),      %edi
+	movl    4(%rax),     %esi
+	movq    %r12,      %rdx
+	call    point_in_poly
+	movq    $0xFFFFFFFF, %r8
+	cmpb $0, %al
+	je  .sssssss
+	movq    $0xFF0000FF, %r8
+.sssssss:
 	movq    (%r14),      %rdi
 	movq    -8(%r14),    %rsi
 	movq    -16(%r14),   %rdx
 	movq    -24(%r14),   %rcx
-	movq    $0xFFFFFFFF, %r8
 	call    DrawLine
+#TODO END
 
 	subq    $16,         %r14
 	decq    %rbx

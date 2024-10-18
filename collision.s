@@ -1,23 +1,116 @@
+.data
+sfmt: .asciz "%d\n"
+
 .text
 
 
 .global point_in_poly
 
-# f is_point_in_path(int x_player, int y_player, int len_array)
+# bool is_point_in_path(int x_player, int y_player, int64* meteorite)
 point_in_poly:
 
 	pushq	%rbp
 	movq	%rsp,	%rbp
 	pushq	%r12
+	pushq	%r13
+	pushq	%r14
+	pushq	%r15
+	pushq	%rbx
 
+	movq    %rdi,       %r10
+	movq    %rsi,       %r11
+	movq    %rdx,       %rdi
+
+	movq    %rdi,       %r12
+	movq    24(%r12),   %r13
+	leaq    -8(%rsp),   %r14
+
+	movq    (%r13),     %rbx
+	incq    %rbx
+	addq    $8,         %r13
+
+.a_draw_loop1:
+	# eax = cos(angle)
+	movl    16(%r12),   %edi
+	call    _cos
+
+	# r15 = mul(eax, p_x)
+	movl    %eax,       %edi
+	movl    (%r13),     %esi
+	call    mul
+	movl    %eax,       %r15d
+
+	# eax = sin(angle)
+	movl    16(%r12),   %edi
+	call    _sin
+
+	# r15 += mul(eax, p_y)
+	movl    %eax,       %edi
+	movl    4(%r13),    %esi
+	call    mul
+	addl    %eax,       %r15d
+
+	# eax = r15 * size
+	movl    %r15d,      %eax
+	cdqe
+	movzb   32(%r12),   %r15
+	imulq   %r15
+
+	# push (a_x + eax) / (2 ^ 16)
+	addl    (%r12),     %eax
+	cdqe
+	pushq   %rax
+
+	# eax = sin(angle)
+	movl    16(%r12),   %edi
+	call    _sin
+
+	# r15 = -mul(eax, p_x)
+	movl    %eax,       %edi
+	movl    (%r13),     %esi
+	call    mul
+	movl    $0,         %r15d
+	subl    %eax,       %r15d
+
+	# eax = cos(angle)
+	movl    16(%r12),   %edi
+	call    _cos
+
+	# r15 += mul(eax, p_y)
+	movl    %eax,       %edi
+	movl    4(%r13),    %esi
+	call    mul
+	addl    %eax,       %r15d
+
+	# eax = r15 * size
+	movl    %r15d,      %eax
+	cdqe
+	movzb   32(%r12),   %r15
+	imulq   %r15
+
+	# push (a_y + eax) / (2 ^ 16)
+	addl    4(%r12),    %eax
+	cdqe
+	pushq   %rax
+
+	addq    $8,         %r13
+	decq    %rbx
+	jnz     .a_draw_loop1
+
+
+	movq    24(%r12),   %r13
+	movq    (%r13),     %rcx
 	movq	$0,	%r12# -> touch counter
-	incq	%rdx
+	incq	%rcx
 	movq	$0,	%rax
+	movq    %r10,       %rdi
+	movq    %r11,       %rsi
+
 
 
 .loop:
-	decq	%rdx
-	cmpq	$0,	%rdx # %rdx -> number of point in asteroid 
+	decq	%rcx
+	cmpq	$0,	%rcx # %rcx -> number of point in asteroid 
 	je	.epilogue
 
 
@@ -25,33 +118,65 @@ point_in_poly:
 	popq	%r8 # -> x_i
 	popq	%r11 # -> y_{i+1}
 	popq	%r10 # -> x_{i+1}
-#	... push all
+	pushq   %r10
+	pushq   %r11
 
-	cmpl	%esi, %r9d
-	jl	.second_cond
+	# assure that y_i+1 <= y_i
+	cmpl    %r11d, %r9d
+	jge     .no_swap
+	xorl    %r11d, %r9d
+	xorl    %r9d, %r11d
+	xorl    %r11d, %r9d
 
-	cmpl	 %esi, %r11d
-	jl	.x_check
+	xorl    %r10d, %r8d
+	xorl    %r8d, %r10d
+	xorl    %r10d, %r8d
+.no_swap:
 
-	jmp	.loop
-
-.second_cond:
 	cmpl	%esi,	%r11d
-	jg	.x_check
-	jmp	.loop	
+	jge     .loop
+
+	cmpl	%esi,	%r9d
+	jl      .loop
 
 
-.x_check:
+	# px < x1 + (x2 - x1)  * (y1 - py) / (y1 - y2)
+	# (px - x1) * (y1 - y2) < (x2 - x1)  * (y1 - py)
+	# (x1 - px) * (y1 - y2) > (x1 - x2)  * (y1 - py)
 
-	subl	%r9d,	%esi	#yp-yi
-	subl	%r9d,	%r11d	#yp-y{i+1}
-	movl	%r10d,	%eax	# moved x{i+1} to rax
-	subl	%r8d,	%eax	# subtract xi
-	mul	%esi
-	divl	%r11d
-	addl	%r8d,	%eax
-	cmpl	%edi,	%eax
-	jge	.add
+	# (x1 - px)
+	movl    %r8d,   %eax
+	subl    %edi,   %eax
+	cdqe
+	movq    %rax,   %r14
+
+	# (y1 - y2)
+	movl    %r9d,   %eax
+	subl    %r11d,  %eax
+	cdqe
+
+	imulq   %r14
+	movq    %rax,   %r14
+
+
+
+	# (x1 - x2)
+	movl    %r8d,   %eax
+	subl    %r10d,  %eax
+	cdqe
+	movq    %rax,   %r15
+
+	# (y1 - py)
+	movl    %r9d,   %eax
+	subl    %esi,   %eax
+	cdqe
+
+	imulq   %r15
+	movq    %rax,   %r15
+
+
+	cmpq    %r14,   %r15
+	jg      .add
 
 	jmp	.loop
 
@@ -62,6 +187,14 @@ point_in_poly:
 .epilogue:
 	andq	$1,	%r12
 	movq	%r12,	%rax
+
+
+	popq	%rbx
+	popq	%rbx
+	popq	%rbx
+	popq	%r15
+	popq	%r14
+	popq	%r13
 	popq	%r12
 	movq	%rbp,	%rsp
 	popq	%rbp

@@ -1,5 +1,6 @@
 .global sboard_loop
 .global sboard_init
+.global sboard_add_score
 
 .data
 bfmt:   .asciz "Press [X] to start."
@@ -16,7 +17,7 @@ sboard_init:
 .sboard_init_loop:
 	movq    $0,             (%rdi)
 	movq    $0,             8(%rdi)
-	movl    $30,            16(%rdi)
+	movl    $-1,            16(%rdi)
 	movb    $' ,             (%rdi)
 	addq    $20,            %rdi     # NAMESIZE
 	loop    .sboard_init_loop
@@ -98,4 +99,41 @@ sboard_loop:
 
 	movq    %rbp,       %rsp
 	popq    %rbp
+	ret
+
+
+sboard_add_score:
+	movq    $pname,         %rax
+
+	addq    $2,             %rax
+	movq    $10,            %rcx    # SLISTSIZE
+	movq    $sboard_list,   %rsi
+.sboard_as_loop:
+	movl    16(%rsi),       %r8d    # NAMESIZE
+	cmpl    score,          %r8d
+	jge     .sboard_as_noswap
+	movl    score,          %r9d
+	movl    %r8d,           score
+	movl    %r9d,           16(%rsi)# NAMESIZE
+
+	movq    $pname,         %rax
+	addq    $2,             %rax
+	movq    %rsi,           %rdi
+.sb_swap_string:
+	movb    (%rax),         %r9b
+	movb    (%rdi),         %r8b
+	movb    %r8b,           (%rax)
+	movb    %r9b,           (%rdi)
+	incq    %rax
+	incq    %rdi
+
+	cmpb    $0,             %r9b
+	jne     .sb_swap_string
+	cmpb    $0,             %r8b
+	jne     .sb_swap_string
+
+.sboard_as_noswap:
+	addq    $20,            %rsi   # NAMESIZE
+	loop    .sboard_as_loop
+
 	ret

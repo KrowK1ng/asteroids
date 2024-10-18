@@ -99,7 +99,7 @@ player_p:
 .text
 
 player_init:
-	# Setting initial position for the player (move to player_init)
+	# Setting initial position for the player
 	movq    $player,    %rax
 	movq    W,          %rdx
 	movl    %edx,       (%rax)
@@ -110,6 +110,7 @@ player_init:
 	shrl    $1,         (%rax)
 	shrl    $1,         4(%rax)
 
+	# Speed is 0
 	movl    $0,         8(%rax)
 	movl    $0,         12(%rax)
 
@@ -118,13 +119,22 @@ player_init:
 	shll    $16,        8(%rax)
 	shll    $16,        12(%rax)
 
+
+	# Set the player angle
+	movl    PI,         %edx
+	shrl    $1,         %edx
+	addl    $0x2,     %edx
+	movl    %edx,       16(%rax)
+
+
+	# Set the points position
 	movq    $player_p,  %rax
 	movl    $6,     (%rax)
 	shll    $16,    (%rax)
 	negl            (%rax)
 	addq    $1,     (%rax)
 
-	movl    $8,     4(%rax)
+	movl    $7,     4(%rax)
 	shll    $16,    4(%rax)
 	negl            4(%rax)
 	addq    $1,     4(%rax)
@@ -134,7 +144,7 @@ player_init:
 	negl            8(%rax)
 	addq    $1,     8(%rax)
 
-	movl    $8,     12(%rax)
+	movl    $7,     12(%rax)
 	shll    $16,    12(%rax)
 
 	movl    $12,    16(%rax)
