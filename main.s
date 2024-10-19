@@ -9,8 +9,8 @@
 .global score
 
 .data
-W: .quad 640
-H: .quad 360
+W: .quad 960
+H: .quad 540
 TIME:  .quad 0
 score:     .long 0
 draw_col:   .long 0
@@ -85,13 +85,15 @@ main:
 
 	# Enable resizable
 	movq    $0x4,      %rdi
-	call SetConfigFlags
+/*	call SetConfigFlags*/
 
 	# InitWindow(W, H, game_name)
 	movl    W,          %edi
 	movl    H,          %esi
 	movl    $1280,      %edi
 	movl    $720,       %esi
+	movl    $960,      %edi
+	movl    $540,       %esi
 	movq    $game_name, %rdx
 	call    InitWindow
 

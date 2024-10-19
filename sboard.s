@@ -3,7 +3,18 @@
 .global sboard_add_score
 
 .data
-bfmt:   .asciz "Press [X] to start."
+bfmt1:   .asciz "Press [C] to warp."
+bfmt2:   .asciz "Press [X] to shoot."
+bfmt3:   .asciz "Move with arrow keys."
+bfmt4:   .asciz "Press [Enter] to start."
+title1: .asciz "          :::     ::::::::::::::::::::::::::::::::::::::  ::::::::::::::::::::::::::::  :::::::: "
+title2: .asciz "       :+: :+:  :+:    :+:   :+:    :+:       :+:    :+::+:    :+:   :+:    :+:    :+::+:    :+: "
+title3: .asciz "     +:+   +:+ +:+          +:+    +:+       +:+    +:++:+    +:+   +:+    +:+    +:++:+         "
+title4: .asciz "   +#++:++#++:+#++:++#++   +#+    +#++:++#  +#++:++#: +#+    +:+   +#+    +#+    +:++#++:++#++   "
+title5: .asciz "  +#+     +#+       +#+   +#+    +#+       +#+    +#++#+    +#+   +#+    +#+    +#+       +#+    "
+title6: .asciz " #+#     #+##+#    #+#   #+#    #+#       #+#    #+##+#    #+#   #+#    #+#    #+##+#    #+#     "
+title7: .asciz "###     ### ########    ###    #############    ### ############################  ########       "
+stitle: .asciz "Scoreboard"
 .quad 0 # allignment
 sboard_list:
 	.space  200   # [NAMESIZE (16) + score (4)] * SLISTSIZE
@@ -18,7 +29,15 @@ sboard_init:
 	movq    $0,             (%rdi)
 	movq    $0,             8(%rdi)
 	movl    $-1,            16(%rdi)
-	movb    $' ,             (%rdi)
+	movb    $'-,             (%rdi)
+	movb    $' ,            1(%rdi)
+	movb    $'e,            2(%rdi)
+	movb    $'m,            3(%rdi)
+	movb    $'p,            4(%rdi)
+	movb    $'t,            5(%rdi)
+	movb    $'y,            6(%rdi)
+	movb    $' ,            7(%rdi)
+	movb    $'-,            8(%rdi)
 	addq    $20,            %rdi     # NAMESIZE
 	loop    .sboard_init_loop
 
@@ -51,7 +70,7 @@ sboard_loop:
 	jmp     .sb_loop
 .sb_loop_fs_skip:
 
-	cmpl    $'X,        %eax
+	cmpl    $257,       %eax
 	jne     .sb_loop
 
 	call    menu_init
@@ -62,30 +81,111 @@ sboard_loop:
 	movq    $0xFF0000000,     %rdi
 	call    ClearBackground
 
-	movq    $bfmt,      %rdi
-	movl    $25,        %esi
-	movl    $10,        %edx
+# Draw instructions
+	movq    $bfmt1,     %rdi
+	movl    $14,        %esi
+	movl    $474,       %edx
 	movl    $0xFFFFFFFF,%ecx
 	call    draw_text
 
+	movq    $bfmt2,     %rdi
+	movl    $14,        %esi
+	movl    $487,       %edx
+	movl    $0xFFFFFFFF,%ecx
+	call    draw_text
+
+	movq    $bfmt3,     %rdi
+	movl    $14,        %esi
+	movl    $500,       %edx
+	movl    $0xFFFFFFFF,%ecx
+	call    draw_text
+
+	movq    $bfmt4,     %rdi
+	movl    $14,        %esi
+	movl    $513,       %edx
+	movl    $0xFFFFFFFF,%ecx
+	call    draw_text
+
+# Draw title
+	movq    $140,           %r13     # X coord
+	movq    $30,            %r14     # Y coord
+	movl    $0xFFFFFFFF,    %r12d    # color
+
+	movq    $title1,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title2,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title3,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title4,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title5,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title6,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	movq    $title7,        %rdi
+	movq    %r13,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	addq    $39,            %r14
+	movq    $stitle,        %rdi
+	movq    $445,           %rsi
+	movq    %r14,           %rdx
+	addq    $13,            %r14
+	movl    %r12d,          %ecx
+	call    draw_text
+
+	# Draw the names
 	movq    $sboard_list,   %r12
 	movq    $10,            %r13     # SLISTSIZE
-	movq    $80,            %r14     # Y Coord
 
 .sb_draw_loop:
 	movq    %r12,           %rdi
-	movq    $120,           %rsi
+	movq    $200,           %rsi
 	movq    %r14,           %rdx
 	movl    $0xFFFFFFFF,    %ecx
 	call    draw_text
 
 	movl    16(%r12),       %edi
-	movq    $400,           %rsi
+	movq    $718,           %rsi
 	movq    %r14,           %rdx
 	movl    $0xFFFFFFFF,    %ecx
 	call    draw_signed
 
-	addq    $16,            %r14
+	addq    $20,            %r14
 	addq    $20,            %r12     # NAMESIZE
 	decq    %r13
 	jnz     .sb_draw_loop

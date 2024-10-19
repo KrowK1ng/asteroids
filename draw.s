@@ -2,7 +2,7 @@
 .global draw_signed
 
 .data
-emptyfmt: .asciz "----"
+emptyfmt: .asciz "  ----"
 
 .text
 # void draw_text(char *s, int x, int y, int col)
@@ -71,6 +71,18 @@ draw_signed:
 
 	# Null terminate
 	movb    $0,             (%rdi)
+
+	decq    %rdi
+	divq    %r8
+	addb    $'0,            %dl
+	movb    %dl,            (%rdi)
+	movb    $0,             %dl
+
+	decq    %rdi
+	divq    %r8
+	addb    $'0,            %dl
+	movb    %dl,            (%rdi)
+	movb    $0,             %dl
 
 	decq    %rdi
 	divq    %r8

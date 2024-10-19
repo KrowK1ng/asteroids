@@ -3,6 +3,8 @@
 .data
 s_fmt: .asciz "%d\n"
 test_text:   .asciz "Enter your name:"
+textoak:   .asciz "Professor OAK: Hello there! My name is OAK! ...Erm. What was your name again?"
+textinp:   .asciz "> "
 
 .text
 menu_init:
@@ -86,9 +88,15 @@ menu_loop:
 	movq    $0xFF0000000,     %rdi
 	call    ClearBackground
 
-	movq    $test_text, %rdi
-	movl    $25,        %esi
-	movl    $10,        %edx
+	movq    $textoak, %rdi
+	movl    $100,        %esi
+	movl    $230,        %edx
+	movl    $0xFFFFFFFF,%ecx
+	call    draw_text
+
+	movq    $textinp, %rdi
+	movl    $100,        %esi
+	movl    $243,        %edx
 	movl    $0xFFFFFFFF,%ecx
 	call    draw_text
 
@@ -96,8 +104,8 @@ menu_loop:
 	cmpb    $0,         (%rdi)
 	je      .menuloop_end
 	addq    $2,         %rdi
-	movl    $25,        %esi
-	movl    $30,        %edx
+	movl    $114,        %esi
+	movl    $243,        %edx
 	movl    $0xFFFFFFFF,%ecx
 	call    draw_text
 

@@ -36,6 +36,7 @@ gameInit:
 	movl    $64,        20(%rax)
 	movl    $5,         lives
 	movl    $0,         score
+	movq    $0,         bullets
 
 	ret
 
@@ -243,12 +244,13 @@ gameLoop:
 .gl_pcnt_noinc:
 
 # TODO: TEMP, draws center of the player
-	movl    player,  %edi
-	movl    4(%rax), %esi
-	shrl    $16,     %edi
-	shrl    $16,     %esi
-	movl    $0xFFFFFFFF,      %edx
-	call    DrawPixel
+#	movl    player,  %edi
+#	movl    4(%rax), %esi
+#	shrl    $16,     %edi
+#	shrl    $16,     %esi
+#	movl    $0xFFFFFFFF,      %edx
+#	call    DrawPixel
+#
 
 	movq    $player, %rax
 	movl    20(%rax),%edx
@@ -520,7 +522,7 @@ gameLoop:
 
 # Draw the lives in a row
 	movl    lives,  %r12d
-	movl    $48,    %r13d   # Start X is 48
+	movl    $14,    %r13d   # Start X is 14
 .gl_ui_heart_loop:
 	movq    $ui_heart,      %rdi
 	movl    %r13d,          %esi
@@ -536,13 +538,13 @@ gameLoop:
 
 	movq    $pname, %rdi
 	addq    $2,     %rdi
-	movl    $24,    %esi
+	movl    $14,    %esi
 	movl    $8,     %edx
 	movl    $0xFFFFFFFF,      %ecx
 	call    draw_text
 
 	movl    score,  %edi
-	movl    $560,   %esi
+	movl    $904,   %esi
 	movl    $8,     %edx
 	movl    $0xFFFFFFFF,      %ecx
 	call    draw_signed
