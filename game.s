@@ -29,8 +29,10 @@ UIH: .long 40
 
 .text
 gameInit:
-	call player_init
-	call meteor_init_types
+	call    player_init
+	call    meteor_init_types
+	movq    $player,    %rax
+	movl    $64,        20(%rax)
 
 	ret
 
@@ -42,6 +44,7 @@ gameInit:
 # Bullet Movement
 # Bullet Draw
 # Bullet Remove
+# TODO Player Death
 # TODO Draw UI
 gameLoop:
 	pushq   %rbp
@@ -180,6 +183,14 @@ gameLoop:
 	addl    %edi,    4(%rax)
 .pos_y_end:
 
+
+	# Add to vcnt if < 32
+	movq    $player, %rax
+	cmpl    $64,     20(%rax)
+	jge     .gl_pcnt_noinc
+	incl    20(%rax)
+.gl_pcnt_noinc:
+
 # TODO: TEMP, draws center of the player
 	movl    player,  %edi
 	movl    4(%rax), %esi
@@ -187,7 +198,13 @@ gameLoop:
 	shrl    $16,     %esi
 	movl    $0xFFFFFFFF,      %edx
 	call    DrawPixel
+
+	movq    $player, %rax
+	movl    20(%rax),%edx
+	andl    $8,      %edx
+	jnz     .gl_pdraw_skip
 	call    player_draw
+.gl_pdraw_skip:
 
 	movq    $meteors,         %r12
 	movq    (%r12),           %rbx      # rbx = a_cnt
@@ -343,6 +360,12 @@ gameLoop:
 	movl    $8,     %edx
 	movl    $0xFFFFFFFF,      %ecx
 	call    draw_text
+
+	movl    score,  %edi
+	movl    $560,   %esi
+	movl    $8,     %edx
+	movl    $0xFFFFFFFF,      %ecx
+	call    draw_signed
 
 
 	movq    $1,     %rax

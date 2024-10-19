@@ -62,7 +62,7 @@ meteor_init_types:
 	movl    $0xf000,         12(%rdi)
 	movl    $0,         16(%rdi)
 	movl    $0x1000,         20(%rdi)
-	movb    $2,         32(%rdi)
+	movb    $3,         32(%rdi)
 
 	movq    %rbp,   %rsp
 	popq    %rbp

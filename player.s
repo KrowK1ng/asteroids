@@ -41,7 +41,7 @@
 		movl    %eax,       \dst
 .endm
 
-.macro trs x, dstx, y, dsty
+.macro trrrs x, y
 		movl    16(%r13),   %edi
 		call    _cos
 		movl    %eax,       %edi
@@ -70,14 +70,26 @@
 		movl    \y,         %esi
 		call    mul
 		subl    %eax,       %r14d
+.endm
 
+.macro trs x, dstx, y, dsty
+		trrrs   \x, \y
 		trsx    %r15d,      \dstx
 		trsy    %r14d,      \dsty
+.endm
+
+.macro trs2 x, dstx, y, dsty
+		trrrs   \x, \y
+		addl    (%r13),     %r15d
+		addl    4(%r13),    %r14d
+		movl    %r15d,      \dstx
+		movl    %r14d,      \dsty
 .endm
 
 .global player
 .global player_init
 .global player_draw
+.global player_die
 .data
 player:
 .long 0 # x position
@@ -85,6 +97,7 @@ player:
 .long 0 # x speed
 .long 0 # y speed
 .long 0 # angle
+.long 0 # vcnt - vulnerability count (4 frames * 8)
 
 player_p:
 .long 0
@@ -174,10 +187,91 @@ player_draw:
 	trs     8(%r12),    -88(%rbp),  12(%r12),   -84(%rbp)
 	trs     16(%r12),   -80(%rbp),  20(%r12),   -76(%rbp)
 
+# TODO TEMP
+	call    player_die
+	cmpq    $0,     %rax
+	je      .playertodo
+	line    -96(%rbp),  -92(%rbp),  -88(%rbp),  -84(%rbp), $0xFFF00FFF
+	line    -96(%rbp),  -92(%rbp),  -80(%rbp),  -76(%rbp), $0xFFF00FFF
+	line    -80(%rbp),  -76(%rbp),  -88(%rbp),  -84(%rbp), $0xFFF00FFF
+	jmp     .playertodo2
+.playertodo:
+# TODO TEMP END
+
 	line    -96(%rbp),  -92(%rbp),  -88(%rbp),  -84(%rbp), $0xFFFFFFFF
 	line    -96(%rbp),  -92(%rbp),  -80(%rbp),  -76(%rbp), $0xFFFFFFFF
 	line    -80(%rbp),  -76(%rbp),  -88(%rbp),  -84(%rbp), $0xFFFFFFFF
+.playertodo2:
+# TODO TEMP END
 
+	movq    -8(%rbp),   %r12
+	movq    -16(%rbp),  %r13
+	movq    -24(%rbp),  %r14
+	movq    -32(%rbp),  %r15
+	movq    -40(%rbp),  %rbx
+
+	movq    %rbp,   %rsp
+	popq    %rbp
+	ret
+
+
+player_die:
+	pushq   %rbp
+	movq    %rsp,   %rbp
+
+	subq    $96,    %rsp
+	movq    %r12,   -8(%rbp)
+	movq    %r13,   -16(%rbp)
+	movq    %r14,   -24(%rbp)
+	movq    %r15,   -32(%rbp)
+	movq    %rbx,   -40(%rbp)
+
+	movq    $player_p,  %r12
+	movq    $player,    %r13
+	leaq    -96(%rbp),  %r14
+
+	trs2    (%r12),     -96(%rbp),  4(%r12),    -92(%rbp)
+	trs2    8(%r12),    -88(%rbp),  12(%r12),   -84(%rbp)
+	trs2    16(%r12),   -80(%rbp),  20(%r12),   -76(%rbp)
+
+	movq    $meteors,   %r12
+	movq    (%r12),     %rax
+	movq    $48,        %rcx    # ASIZE
+	mulq    %rcx
+	jz      .pd_end
+	addq    $16,        %r12
+	addq    %r12,       %rax
+	movq    %rax,       %r13
+
+.pd_loop:
+
+	movl    -96(%rbp),  %edi
+	movl    -92(%rbp),  %esi
+	movq    %r12,       %rdx
+	call    point_in_poly
+	cmpq    $0,         %rax
+	jne     .pd_end
+
+	movl    -88(%rbp),  %edi
+	movl    -84(%rbp),  %esi
+	movq    %r12,       %rdx
+	call    point_in_poly
+	cmpq    $0,         %rax
+	jne     .pd_end
+
+	movl    -80(%rbp),  %edi
+	movl    -76(%rbp),  %esi
+	movq    %r12,       %rdx
+	call    point_in_poly
+	cmpq    $0,         %rax
+	jne     .pd_end
+
+	addq    $48,        %r12    # ASIZE
+	cmpq    %r12,       %r13
+	jne     .pd_loop
+
+	movq    $0,         %rax
+.pd_end:
 	movq    -8(%rbp),   %r12
 	movq    -16(%rbp),  %r13
 	movq    -24(%rbp),  %r14
