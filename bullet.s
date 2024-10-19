@@ -89,7 +89,7 @@ b_remove:
 	jne     .b_remove_loop
 .b_remove_loop_end:
 
-	# DEBUG
+	# TODO DEBUG
 	pushq   %rax
 	movq    $0,             %rax
 	movq    $d_brmsg,       %rdi

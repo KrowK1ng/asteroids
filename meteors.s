@@ -1,5 +1,8 @@
 .global meteor_init_types
 .global a_draw
+.global a_remove
+.global a_destroy
+.global a_init
 .global meteors
 
 
@@ -15,6 +18,8 @@ MMETEORS: .quad 256
 meteors:
 	.quad 0, 0     # cnt and total size (both <= 256)
 	.space 12288
+d_armsg: .asciz "Asteroid removed. %d asteroids left.\n"
+
 mtype_1:
 	.quad 4
 	.long -0x100000, 0x100000
@@ -59,6 +64,7 @@ mtype_3:
 meteor_init_types:
 	pushq   %rbp
 	movq    %rsp,       %rbp
+
 /*
 	movq    $meteors,   %rdi
 	addq    $2,         (%rdi)    # a_cnt = 2
@@ -189,30 +195,12 @@ a_draw:
 	movq    (%r13),     %rbx
 
 .a_draw_loop2:
-/*	movq    (%r14),      %rdi*/
-/*	movq    -8(%r14),    %rsi*/
-/*	movq    -16(%r14),   %rdx*/
-/*	movq    -24(%r14),   %rcx*/
-/*	movq    $0xFFFFFFFF, %r8*/
-/*	call    DrawLine*/
-
-#TODO BEGIN
-	movq    $player,     %rax
-	movl    (%rax),      %edi
-	movl    4(%rax),     %esi
-	movq    %r12,      %rdx
-	call    point_in_poly
-	movq    $0xFFFFFFFF, %r8
-	cmpb $0, %al
-	je  .sssssss
-	movq    $0xFF0000FF, %r8
-.sssssss:
 	movq    (%r14),      %rdi
 	movq    -8(%r14),    %rsi
 	movq    -16(%r14),   %rdx
 	movq    -24(%r14),   %rcx
+	movq    $0xFFFFFFFF, %r8
 	call    DrawLine
-#TODO END
 
 	subq    $16,         %r14
 	decq    %rbx
@@ -353,4 +341,47 @@ a_init:
 .end:
 	movq	%rbp,	%rsp
 	popq	%rbp
+	ret
+
+a_remove:
+	movq    $meteors,       %rsi
+	decq    (%rsi)
+	movq    (%rsi),         %rcx
+
+	addq    $16,            %rsi
+	movq    $48,            %rax    # MSIZE
+	mulq    %rcx
+	addq    %rax,           %rsi
+
+	cmpq    %rdi,           %rsi
+	je      .a_remove_loop_end
+.a_remove_loop:
+	movq    48(%rdi),       %rax    # MSIZE
+	movq    %rax,           (%rdi)
+	addq    $8,             %rdi
+	cmpq    %rdi,           %rsi
+	jne     .a_remove_loop
+.a_remove_loop_end:
+
+	# TODO DEBUG
+	pushq   %rax
+	movq    $0,             %rax
+	movq    $d_armsg,       %rdi
+	movq    meteors,        %rsi
+	call    printf
+	popq    %rax
+
+	ret
+
+
+a_destroy:
+	# TODO split in smaller ones
+	movzb    32(%rdi),      %rax
+	addl     %eax,          score
+
+	# Remove it and add alignment
+	pushq   %rax
+	call     a_remove
+	popq    %rax
+
 	ret

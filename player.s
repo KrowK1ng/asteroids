@@ -187,22 +187,9 @@ player_draw:
 	trs     8(%r12),    -88(%rbp),  12(%r12),   -84(%rbp)
 	trs     16(%r12),   -80(%rbp),  20(%r12),   -76(%rbp)
 
-# TODO TEMP
-	call    player_die
-	cmpq    $0,     %rax
-	je      .playertodo
-	line    -96(%rbp),  -92(%rbp),  -88(%rbp),  -84(%rbp), $0xFFF00FFF
-	line    -96(%rbp),  -92(%rbp),  -80(%rbp),  -76(%rbp), $0xFFF00FFF
-	line    -80(%rbp),  -76(%rbp),  -88(%rbp),  -84(%rbp), $0xFFF00FFF
-	jmp     .playertodo2
-.playertodo:
-# TODO TEMP END
-
 	line    -96(%rbp),  -92(%rbp),  -88(%rbp),  -84(%rbp), $0xFFFFFFFF
 	line    -96(%rbp),  -92(%rbp),  -80(%rbp),  -76(%rbp), $0xFFFFFFFF
 	line    -80(%rbp),  -76(%rbp),  -88(%rbp),  -84(%rbp), $0xFFFFFFFF
-.playertodo2:
-# TODO TEMP END
 
 	movq    -8(%rbp),   %r12
 	movq    -16(%rbp),  %r13
@@ -230,15 +217,22 @@ player_die:
 	movq    $player,    %r13
 	leaq    -96(%rbp),  %r14
 
+	# If player is invulnerable, he can't die (obv, smh 🙄)
+	movl    20(%r13),   %edi
+	cmpl    $64,        %edi    # VCNT
+	movq    $0,         %rax
+	jl      .pd_end
+
 	trs2    (%r12),     -96(%rbp),  4(%r12),    -92(%rbp)
 	trs2    8(%r12),    -88(%rbp),  12(%r12),   -84(%rbp)
 	trs2    16(%r12),   -80(%rbp),  20(%r12),   -76(%rbp)
 
 	movq    $meteors,   %r12
 	movq    (%r12),     %rax
+	cmpq    $0,         %rax
+	je      .pd_end
 	movq    $48,        %rcx    # ASIZE
 	mulq    %rcx
-	jz      .pd_end
 	addq    $16,        %r12
 	addq    %r12,       %rax
 	movq    %rax,       %r13

@@ -25,7 +25,8 @@
 .global gameLoop
 
 .data
-UIH: .long 40
+UIH: .long 0
+lives: .long 0
 
 .text
 gameInit:
@@ -33,6 +34,8 @@ gameInit:
 	call    meteor_init_types
 	movq    $player,    %rax
 	movl    $64,        20(%rax)
+	movl    $5,         lives
+	movl    $0,         score
 
 	ret
 
@@ -44,7 +47,9 @@ gameInit:
 # Bullet Movement
 # Bullet Draw
 # Bullet Remove
-# TODO Player Death
+# Meteorite Remove
+# Meteorite Destroy (by touching a bullet)
+# Player Death
 # TODO Draw UI
 gameLoop:
 	pushq   %rbp
@@ -73,6 +78,12 @@ gameLoop:
 	movl    16(%rax),   %edx
 	call    b_init
 .gl_bullet_init_skip:
+
+# TODO Removee
+	checkPressed   $'A
+	jne     .ssssssssssssssss
+	call    a_init
+.ssssssssssssssss:
 
 	checkDown   $'Q
 	movb    %al,        %dil
@@ -186,7 +197,7 @@ gameLoop:
 
 	# Add to vcnt if < 32
 	movq    $player, %rax
-	cmpl    $64,     20(%rax)
+	cmpl    $64,     20(%rax) # VCNT
 	jge     .gl_pcnt_noinc
 	incl    20(%rax)
 .gl_pcnt_noinc:
@@ -201,7 +212,7 @@ gameLoop:
 
 	movq    $player, %rax
 	movl    20(%rax),%edx
-	andl    $8,      %edx
+	andl    $8,      %edx     # VCNT
 	jnz     .gl_pdraw_skip
 	call    player_draw
 .gl_pdraw_skip:
@@ -346,6 +357,111 @@ gameLoop:
 	jnz     .gl_b_remove_loop
 .gl_b_remove_loop_end:
 
+
+# Remove Meteorites TODO (Take coordinates outside screen)
+	movq    $meteors,         %r12
+	movq    (%r12),           %rbx      # rbx = a_cnt
+	addq    $16,              %r12      # r12 = a_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_a_remove_loop_end
+.gl_a_remove_loop:
+	movl    W,                %eax
+	shll    $16,              %eax
+	cmpl    %eax,             (%r12)
+	jge     .gl_a_rloop_remove
+	cmpl    $0,               (%r12)
+	jl      .gl_a_rloop_remove
+
+	movl    H,                %eax
+	shll    $16,              %eax
+	cmpl    %eax,             4(%r12)
+	jge     .gl_a_rloop_remove
+	cmpl    $0,               4(%r12)
+	jl      .gl_a_rloop_remove
+
+	jmp     .gl_a_rloop_pre_end
+.gl_a_rloop_remove:
+	movq    %r12,             %rdi
+	call    a_remove
+	subq    $48,              %r12      # r12 = a_pnt-- MSIZE
+
+.gl_a_rloop_pre_end:
+	addq    $48,              %r12      # r12 = a_pnt++ MSIZE
+	decq    %rbx
+	jnz     .gl_a_remove_loop
+.gl_a_remove_loop_end:
+
+
+# Destroy Meteorites (if it touches a bullet)
+	movq    $meteors,         %r12
+	movq    (%r12),           %rbx      # rbx = a_cnt
+	addq    $16,              %r12      # r12 = a_pnt
+
+	cmpq    $0,               %rbx
+	je      .gl_a_destroy_loop_end
+.gl_a_destroy_loop:
+
+	movq    $bullets,         %r13
+	movq    (%r13),           %r14      # rcx = b_cnt
+	addq    $8,               %r13      # r13 = b_pnt
+
+	# Loop through all the bullets
+	cmpq    $0,               %r14
+	je      .gl_a_dloop_pre_end
+	.gl_a_dloop_bloop:
+		# point_in_poly(bx, by, meteorite)
+		movl    (%r13),       %edi
+		movl    4(%r13),      %esi
+		movq    %r12,         %rdx
+		call    point_in_poly
+		andq    $1,           %rax
+		jnz     .gl_a_dloop_remove
+
+		addq    $16,          %r13      # r13 = b_pnt++ BSIZE
+		decq    %r14
+		jnz     .gl_a_dloop_bloop
+
+	jmp     .gl_a_dloop_pre_end
+.gl_a_dloop_remove:
+	movq    %r12,             %rdi
+	call    a_destroy
+	movq    %r13,             %rdi
+	call    b_remove
+	subq    $48,              %r12      # r12 = a_pnt-- MSIZE
+# TODO increase rbx with delta
+
+.gl_a_dloop_pre_end:
+	addq    $48,              %r12      # r12 = a_pnt++ MSIZE
+	decq    %rbx
+	jnz     .gl_a_destroy_loop
+.gl_a_destroy_loop_end:
+
+
+# Player Death
+	call    player_die
+	cmpq    $0,     %rax
+	je      .gl_player_not_die
+	# Kill the player
+
+	# If lives are zero, go to Game Over TODO
+	decl    lives
+	jnz     .gl_no_gameover
+	call    sboard_add_score
+	movq    $1,         %rax
+	movb    $0,         gstate
+	jmp     .gl_end
+
+.gl_no_gameover:
+
+# Respawn the player
+	call    player_init
+	movq    $player,%rax
+	movl    $0,     20(%rax)    # Make him invulnerable
+
+.gl_player_not_die:
+
+# Draw black header
 	movq    $0,     %rdi
 	movq    $0,     %rsi
 	movl    W,      %edx
@@ -353,6 +469,23 @@ gameLoop:
 
 	movl    $0xFF000000,    %r8d
 	call    DrawRectangle
+
+
+# Draw the lives in a row
+	movl    lives,  %r12d
+	movl    $48,    %r13d   # Start X is 48
+.gl_ui_heart_loop:
+	movq    $ui_heart,      %rdi
+	movl    %r13d,          %esi
+	movl    $22,            %edx
+	movl    $0xFF0000FF,    draw_col
+	call    putBitmap
+	movw    ui_heart,       %r14w
+	andl    $0xFF,          %r14d
+	addl    %r14d,          %r13d
+	decl    %r12d
+	jnz     .gl_ui_heart_loop
+
 
 	movq    $pname, %rdi
 	addq    $2,     %rdi
