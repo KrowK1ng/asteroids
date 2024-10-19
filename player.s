@@ -90,6 +90,8 @@
 .global player_init
 .global player_draw
 .global player_die
+.global player_draw_warp
+
 .data
 player:
 .long 0 # x position
@@ -271,6 +273,87 @@ player_die:
 	movq    -24(%rbp),  %r14
 	movq    -32(%rbp),  %r15
 	movq    -40(%rbp),  %rbx
+
+	movq    %rbp,   %rsp
+	popq    %rbp
+	ret
+
+player_draw_warp:
+	pushq   %rbp
+	movq    %rsp,   %rbp
+
+	subq    $96,    %rsp
+	movq    %r12,   -8(%rbp)
+	movq    %r13,   -16(%rbp)
+	movq    %r14,   -24(%rbp)
+	movq    %r15,   -32(%rbp)
+	movq    %rbx,   -40(%rbp)
+
+	movq    $player_p,  %r12
+	movq    $player,    %r13
+	leaq    -96(%rbp),  %r14 # I don't think this is needed anymore 😩
+
+
+	# Add transformed points to the stack
+	trs     (%r12),     -96(%rbp),  4(%r12),    -92(%rbp)
+	trs     8(%r12),    -88(%rbp),  12(%r12),   -84(%rbp)
+	trs     16(%r12),   -80(%rbp),  20(%r12),   -76(%rbp)
+
+	movq    $player,    %r13
+
+	# Calc the X delta from warp
+	movl    8(%r13),    %eax
+	cdqe
+	shrq    $16,        %rax
+
+	movl    %eax,       %edi
+	addl    -96(%rbp),  %eax
+	movl    %eax,       -72(%rbp)
+	movl    %edi,       %eax
+	addl    -88(%rbp),  %eax
+	movl    %eax,       -64(%rbp)
+	movl    %edi,       %eax
+	addl    -80(%rbp),  %eax
+	movl    %eax,       -56(%rbp)
+
+	# Calc the Y delta from warp
+	movl    12(%r13),   %eax
+	cdqe
+	shrq    $16,        %rax
+
+	movl    %eax,       %edi
+	addl    -92(%rbp),  %eax
+	movl    %eax,       -68(%rbp)
+	movl    %edi,       %eax
+	addl    -84(%rbp),  %eax
+	movl    %eax,       -60(%rbp)
+	movl    %edi,       %eax
+	addl    -76(%rbp),  %eax
+	movl    %eax,       -52(%rbp)
+
+
+	# Draw the lines
+	movl    -96(%rbp),  %edi
+	movl    -92(%rbp),  %esi
+	movl    -72(%rbp),  %edx
+	movl    -68(%rbp),  %ecx
+	movl    $0xFFF9CD00,%r8d
+	call    DrawLine
+
+	movl    -88(%rbp),  %edi
+	movl    -84(%rbp),  %esi
+	movl    -64(%rbp),  %edx
+	movl    -60(%rbp),  %ecx
+	movl    $0xFFF9CD00,%r8d
+	call    DrawLine
+
+	movl    -80(%rbp),  %edi
+	movl    -76(%rbp),  %esi
+	movl    -56(%rbp),  %edx
+	movl    -52(%rbp),  %ecx
+	movl    $0xFFF9CD00,%r8d
+	# call    DrawLine
+
 
 	movq    %rbp,   %rsp
 	popq    %rbp

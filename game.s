@@ -181,7 +181,7 @@ gameLoop:
 	movq    $player,    %rax
 	movl    %edi,       12(%rax)
 
-	jmp .end_set_warp
+	call    player_draw_warp
 
 
 .end_set_warp:
@@ -358,7 +358,7 @@ gameLoop:
 	movl    $2,               %edx
 	movl    $2,               %ecx
 
-	movl    $0xFFFFFFFF,      %r8d
+	movl    $0xFFF9CD00,      %r8d
 	call    DrawRectangle
 
 	addq    $16,              %r12      # r12 = b_pnt++ BSIZE
