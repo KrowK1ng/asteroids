@@ -4,6 +4,8 @@
 .global DPI
 .global PI
 .global pseudorand
+.global randquad
+.global randlong
 
 .data
 PI:  .long 0x3243F
@@ -186,12 +188,56 @@ pseudorand:
 	movq	%rsp,	%rbp
 
 	movq	TIME,	%rdi
-	imulq	SEED,	%rdi
+	movq	SEED, %rax
+	mul	%rdi
 
-	imulq	PRIME,	%rax
+	movq	PRIME,	%rdi
+	mul     %rdi
 	addq	ADD,	%rax
 	movq	%rax,	SEED
 
 	movq	%rbp, %rsp
+	popq	%rbp
+	ret
+
+# f randint(int a, int b)
+# a < b
+randquad:
+	pushq	%rbp
+	movq	%rsp,	%rbp
+
+	subq	%rdi,	%rsi
+	incq	%rsi
+	pushq	%rsi
+	pushq	%rdi
+	call pseudorand
+	popq %rdi
+	popq %rsi
+	movq $0, %rdx
+	div	%rsi
+	addq	%rdi,	%rdx
+	movq	%rdx,	%rax
+
+	movq	%rbp,	%rsp
+	popq	%rbp
+	ret
+
+randlong:
+	pushq	%rbp
+	movq	%rsp,	%rbp
+
+	subl	%edi,	%esi
+	incl	%esi
+	pushq	%rsi
+	pushq	%rdi
+	call pseudorand
+	popq %rdi
+	popq %rsi
+	movq $0, %rdx
+	div	%esi
+	addl	%edi,	%edx
+	movl	%edx,	%eax
+
+	movq	%rbp,	%rsp
 	popq	%rbp
 	ret
