@@ -370,20 +370,60 @@ a_remove:
 	movq    $0,             %rax
 	movq    $d_armsg,       %rdi
 	movq    meteors,        %rsi
-	call    printf
+/*	call    printf*/
 	popq    %rax
 
 	ret
 
 
 a_destroy:
-	# TODO split in smaller ones
-	movzb    32(%rdi),      %rax
-	addl     %eax,          score
+	pushq   %rbp
+	movq    %rsp,   %rbp
 
-	# Remove it and add alignment
-	pushq   %rax
+	subq    $32,        %rsp
+	movq    %r12,       -8(%rbp)
+	movq    %r13,       -16(%rbp)
+	movq    %r14,       -24(%rbp)
+
+
+	movzb    32(%rdi),      %r12
+	movl     (%rdi),        %r13d
+	movl     4(%rdi),       %r14d
+
+	addl     %r12d,         score
 	call     a_remove
-	popq    %rax
 
+	# Split meteors into to
+	decb     %r12b
+	jz       .adst_end
+
+	# TODO, do size while creating
+
+	call     a_init
+	call     a_init
+	movq     $meteors,      %rdi
+	movq     (%rdi),        %rax
+	movq     $48,           %rcx
+	mulq     %rcx
+	addq     %rax,          %rdi
+	subq     $32,           %rdi
+
+	movl     %r13d,         (%rdi)
+	movl     %r14d,         4(%rdi)
+	movb     %r12b,         32(%rdi)
+
+	subq     $48,           %rdi
+
+	movl     %r13d,         (%rdi)
+	movl     %r14d,         4(%rdi)
+	movb     %r12b,         32(%rdi)
+
+
+	.adst_end:
+	movq    -8(%rbp),   %r12
+	movq    -16(%rbp),  %r13
+	movq    -24(%rbp),  %r14
+
+	movq    %rbp,   %rsp
+	popq    %rbp
 	ret

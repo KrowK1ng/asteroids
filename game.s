@@ -403,6 +403,7 @@ gameLoop:
 # Destroy Meteorites (if it touches a bullet)
 	movq    $meteors,         %r12
 	movq    (%r12),           %rbx      # rbx = a_cnt
+	movq    (%r12),           %r15      # r15 = a_cnt_old
 	addq    $16,              %r12      # r12 = a_pnt
 
 	cmpq    $0,               %rbx
@@ -436,7 +437,13 @@ gameLoop:
 	movq    %r13,             %rdi
 	call    b_remove
 	subq    $48,              %r12      # r12 = a_pnt-- MSIZE
-# TODO increase rbx with delta
+
+# Increase rbx with delta
+	movq    meteors,          %r13
+	subq    %r15,             %r13
+	incq    %r13
+	addq    %r13,             %rbx
+	movq    meteors,          %r15
 
 .gl_a_dloop_pre_end:
 	addq    $48,              %r12      # r12 = a_pnt++ MSIZE
