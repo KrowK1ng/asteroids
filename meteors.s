@@ -2,6 +2,7 @@
 .global a_draw
 .global meteors
 
+
 .macro trans pos
 	movl    \pos,   %eax
 	cdqe
@@ -14,15 +15,6 @@ MMETEORS: .quad 256
 meteors:
 	.quad 0, 0     # cnt and total size (both <= 256)
 	.space 12288
-
-# struct asteroid {
-#   f x, y;
-#   f vx, vy;
-#   f angle, va;
-#   .quad type
-#   byte s
-# } = 48 bytes
-
 mtype_1:
 	.quad 4
 	.long -0x100000, 0x100000
@@ -31,27 +23,57 @@ mtype_1:
 	.long -0x100000, -0x100000
 	.long -0x100000, 0x100000
 
+mtype_2:
+	.quad 6
+	.long 0x100000, 0x080000
+	.long 0x000000, 0x180000
+	.long -0x100000, 0x080000
+	.long -0x100000, -0x080000
+	.long 0x000000, -0x180000
+	.long 0x100000, -0x080000
+	.long 0x100000, 0x080000
+
+mtype_3:
+	.quad 8
+	.long 0x180000, 0x080000
+	.long 0x080000, 0x180000
+	.long -0x080000, 0x180000
+	.long -0x180000, 0x080000
+	.long -0x180000, -0x080000
+	.long -0x08000, -0x180000
+	.long 0x080000, -0x180000
+	.long 0x180000, -0x080000
+	.long 0x180000, 0x080000
+
+
+# struct asteroid {
+#   f x, y;
+#   f vx, vy;
+#   f angle, va;
+#x   .quad type 
+#x   byte s	1 <= s <= 3
+# } = 48 bytes
+
+
 .text
 meteor_init_types:
 	pushq   %rbp
 	movq    %rsp,       %rbp
-
+/*
 	movq    $meteors,   %rdi
-	movq    $2,         (%rdi)    # a_cnt = 2
+	addq    $2,         (%rdi)    # a_cnt = 2
 	addq    $16,        %rdi
 
-	movq    $mtype_1,   %rsi
+	movq    $mtype_3,   %rsi	#type
 	movq    %rsi,       24(%rdi)
-	movl    $0x1000000,         (%rdi)
-	movl    $0x1000000,         4(%rdi)
-	movl    $0x10000,         8(%rdi)
-	movl    $-0x1f000,         12(%rdi)
-	movl    $0x1100,         16(%rdi)
-	movl    $0,         12(%rdi)
-	movl    $0,         8(%rdi)
+	movl    $0x1000000,         (%rdi) # x pos
+	movl    $0x1000000,         4(%rdi) # y pos
+	movl    $0x10000,         8(%rdi)  # vx
+	movl    $-0x1f000,         12(%rdi) # vy
+	movl    $0x1100,         16(%rdi)   # angle
 
-	movl    $0,         20(%rdi)
-	movb    $1,         32(%rdi)
+	movl    $0,         20(%rdi)	#va
+	movb    $1,         32(%rdi)	#size
 
 	addq    $48,        %rdi
 	movq    $mtype_1,   %rsi
@@ -62,7 +84,9 @@ meteor_init_types:
 	movl    $0xf000,         12(%rdi)
 	movl    $0,         16(%rdi)
 	movl    $0x1000,         20(%rdi)
-	movb    $3,         32(%rdi)
+	movb    $2,         32(%rdi)
+*/
+
 
 	movq    %rbp,   %rsp
 	popq    %rbp
@@ -203,4 +227,130 @@ a_draw:
 
 	movq    %rbp,   %rsp
 	popq    %rbp
+	ret
+
+
+
+/*
+
+	movq    $meteors,   %rdi
+	addq    $2,         (%rdi)    # a_cnt = 2
+	addq    $16,        %rdi
+
+	movq    $mytype_3,   24(%rdi)
+
+	movl    $0x1000000,         (%rdi) # x pos
+	movl    $0x1000000,         4(%rdi) # y pos
+	movl    $0x10000,         8(%rdi)  # vx
+	movl    $-0x1f000,         12(%rdi) # vy
+	movl    $0x1100,         16(%rdi)   # angle
+
+	movl    $0,         20(%rdi)	#va
+	movb    $1,         32(%rdi)	#size
+*/
+# f a_init(int type, int size)
+a_init:
+	pushq	 %rbp
+	movq	 %rsp,	%rbp 
+	
+	movq	$meteors,	%r11
+	cmpq	$256,	8(%r11)
+	jge	.end
+	
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	.brak:	
+
+	cmpq	$1,	%rax
+	je	.fst_type
+
+	cmpq	$2,	%rax
+	je	.snd_type
+
+	jmp	.trd_type
+
+.fst_type:
+	movq $mtype_1, %rdi
+	jmp	.continue
+
+.snd_type:
+	movq $mtype_2, %rdi
+	jmp	.continue
+
+.trd_type:
+	movq $mtype_3, %rdi
+	jmp	.continue
+
+.continue:
+	movq $meteors,	%rcx
+
+	movq (%rcx),	%rax # count of meteors until now
+	movq $48, %rdx
+	mul %rdx
+	addq    $1,         (%rcx)    # a_cnt =+1
+# TODO fix this because it doesnt have the right value
+//	addq	%rax,	   8(%rcx)    # a_size =+ siz
+	addq    $16,        %rcx 
+	addq %rax, %rcx
+	movq    %rdi,	    24(%rcx)
+
+# TODO: change x and y to random outer-bound positions	
+	movl	$0, %edi
+	movl	W, %esi
+	call	randlong
+	shl	$16, %eax
+	movl	%eax,	(%rcx)   # random x pos
+	movl	$0, %edi
+	movl	H, %esi
+	call	randlong
+
+	shl	$16, %eax
+	movl    %eax,	4(%rcx)  # random y pos
+
+	movl	H, %r10d
+	movl	W, %r11d
+
+	shl	$15, %r10d
+	shl	$15, %r11d
+
+	subl	%r10d, %eax
+	notl	%eax
+	incl	%eax
+	cdqe 
+	shr $7, %rax
+	movl	%eax,	12(%rcx)
+
+	movl    (%rcx),	%eax
+	subl	%r11d, %eax
+	notl	%eax
+	incl	%eax
+	cdqe 
+	shr $7, %rax
+	movl	%eax, 8(%rcx)
+
+	.break:	
+	
+	movl	$0,	%edi
+	movl	DPI,	%esi
+	call	randlong
+	movl	%eax, 16(%rcx)	
+
+	
+	movl	$2200,	%edi
+	movl	$2800,	%esi
+	call randlong
+	movl	$2800,	20(%rcx)	
+
+
+	movl	$1, %edi
+	movl	$3, %esi
+	call randlong
+	movb    %al,	32(%rcx)
+
+
+	
+.end:
+	movq	%rbp,	%rsp
+	popq	%rbp
 	ret
