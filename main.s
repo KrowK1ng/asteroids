@@ -21,6 +21,7 @@ pname:
 gstate: .byte 0   # 0 -> sboard (scoreboard)
                   # 1 -> menu (write name)
                   # 2 -> game
+rentex: .quad 0
 
 .text
 # void putBitmap(int64* addr, int x, int y)
@@ -82,11 +83,26 @@ main:
 	pushq   %rbp
 	movq    %rsp,       %rbp
 
+	# Enable resizable
+	movq    $0x4,      %rdi
+	call SetConfigFlags
+
 	# InitWindow(W, H, game_name)
 	movl    W,          %edi
 	movl    H,          %esi
+	movl    $1280,      %edi
+	movl    $720,       %esi
 	movq    $game_name, %rdx
 	call    InitWindow
+
+	# rentex = LoadRenderTexture(W, H)
+	movl    W,          %edi
+	movl    H,          %esi
+	call    helpStart
+/*	movl    W,          %edi*/
+/*	movl    H,          %esi*/
+/*	call    LoadRenderTexture*/
+/*	movq    %rax,       rentex*/
 
 	movq    $40,        %rdi
 	call    SetTargetFPS
@@ -94,7 +110,7 @@ main:
 	call    sboard_init
 
 .main_loop:
-		call    BeginDrawing
+		call    helpRender
 		cmpb    $0,         gstate
 		jne     .main_sloop_skip
 
@@ -118,7 +134,14 @@ main:
 
 .main_loop_pend:
 		incq    TIME
+		call    EndTextureMode
+
+		call    BeginDrawing
+		movl    W,          %edi
+		movl    H,          %esi
+		call    helpPresent
 		call    EndDrawing
+
 		call    WindowShouldClose
 		cmpq    $0,     %rax
 		je      .main_loop
