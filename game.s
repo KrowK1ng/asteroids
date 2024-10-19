@@ -83,6 +83,9 @@ gameLoop:
 	checkPressed   $'A
 	jne     .ssssssssssssssss
 	call    a_init
+
+
+
 .ssssssssssssssss:
 
 # TODO SPAWN TIMER
@@ -152,6 +155,36 @@ gameLoop:
 	movl    $0,         8(%rax)
 	movl    $0,         12(%rax)
 .end_set_speed:
+
+	checkPressed   $'C
+	jne     .end_set_warp
+
+.set_warp:
+	movq    $player,    %rax
+	movl    16(%rax),   %edi
+	call    _cos
+	movl    %eax,       %edi
+	movl    $0x750000,    %esi
+	call    mul
+	movl    %eax,       %edi
+	movq    $player,    %rax
+	movl    %edi,       8(%rax)
+
+	movl    16(%rax),   %edi
+	call    _sin
+	movl    %eax,       %edi
+	movl    $0x750000,    %esi
+	call    mul
+	movl    $0,         %edi
+	subl    %eax,       %edi
+	movq    $player,    %rax
+	movl    %edi,       12(%rax)
+
+	jmp .end_set_warp
+
+
+.end_set_warp:
+
 
 
 	# Add speed
