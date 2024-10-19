@@ -65,6 +65,8 @@ meteor_init_types:
 	pushq   %rbp
 	movq    %rsp,       %rbp
 
+	movq    $meteors,   %rdi
+	movq    $0,         (%rdi)    # a_cnt = 0
 /*
 	movq    $meteors,   %rdi
 	addq    $2,         (%rdi)    # a_cnt = 2

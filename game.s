@@ -79,11 +79,18 @@ gameLoop:
 	call    b_init
 .gl_bullet_init_skip:
 
-# TODO Removee
+# TODO Remove
 	checkPressed   $'A
 	jne     .ssssssssssssssss
 	call    a_init
 .ssssssssssssssss:
+
+# TODO SPAWN TIMER
+	movq    TIME,       %rax
+	andq    $31,        %rax
+	jnz     .ssssssssssssssssx
+	call    a_init
+.ssssssssssssssssx:
 
 	checkDown   $'Q
 	movb    %al,        %dil
