@@ -1,2 +1,2 @@
-CFLAGS=""
-LIBS="-lraylib"
+CFLAGS=
+LIBS=-lraylib -lcurl

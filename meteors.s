@@ -242,6 +242,8 @@ a_draw:
 a_init:
 	pushq	 %rbp
 	movq	 %rsp,	%rbp 
+	pushq	%rbx	# random number keeper
+	pushq	%rbx
 	
 	movq	$meteors,	%r11
 	cmpq	$256,	8(%r11)
@@ -286,8 +288,34 @@ a_init:
 	movq    %rdi,	    24(%rcx)
 
 # TODO: change x and y to random outer-bound positions	
-	movl	$0, %edi
-	movl	W, %esi
+
+    call pseudorand
+    rolq $1, %rax
+    movq $0, %rdx
+    movq %rax, %rbx
+    movq $2, %rdi
+    divq %rdi
+    cmpq $0, %rdx
+    je .case1
+
+    jmp .case2
+
+
+	.case1:
+
+    call pseudorand
+    rolq $1, %rax
+    movq $0, %rdx
+    movq %rax, %rbx
+    movq $2, %rdi
+    divq %rdi
+    cmpq $0, %rdx
+    je .case3
+
+
+	movl	W, %edi
+	movl	%edi, %esi 
+	addl	$50,  %esi
 	call	randlong
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
@@ -297,6 +325,73 @@ a_init:
 
 	shl	$16, %eax
 	movl    %eax,	4(%rcx)  # random y pos
+
+	jmp .other_thing_m
+
+
+	.case3:
+
+
+	movl	$-3, %edi
+	movl	$1, %esi 
+	call	randlong
+	shl	$16, %eax
+	movl	%eax,	(%rcx)   # random x pos
+	movl	$0, %edi
+	movl	H, %esi
+	call	randlong
+
+	shl	$16, %eax
+	movl    %eax,	4(%rcx)  # random y pos
+
+
+
+	jmp .other_thing_m
+	.case4:
+
+
+	movl	$0, %edi
+	movl	W, %esi 
+	call	randlong
+	shl	$16, %eax
+	movl	%eax,	(%rcx)   # random x pos
+	movl	$-3, %edi
+	movl	$1, %esi
+	call	randlong
+
+	shl	$16, %eax
+	movl    %eax,	4(%rcx)  # random y pos
+
+
+	jmp .other_thing_m
+	.case2:
+
+    call pseudorand
+    rolq $1, %rax
+    movq $0, %rdx
+    movq %rax, %rbx
+    movq $2, %rdi
+    divq %rdi
+    cmpq $0, %rdx
+    je .case4
+
+
+	movl	$0, %edi
+	movl	W, %esi 
+	call	randlong
+	shl	$16, %eax
+	movl	%eax,	(%rcx)   # random x pos
+	movl	H, %edi
+	movl	%edi , %esi
+	addl	$50, %esi
+	call	randlong
+
+	shl	$16, %eax
+	movl    %eax,	4(%rcx)  # random y pos
+
+	.other_thing_m:
+
+
 
 	movl	H, %r10d
 	movl	W, %r11d
@@ -341,6 +436,8 @@ a_init:
 
 	
 .end:
+	popq %rbx
+	popq %rbx
 	movq	%rbp,	%rsp
 	popq	%rbp
 	ret

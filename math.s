@@ -214,7 +214,7 @@ randquad:
 	popq %rdi
 	popq %rsi
 	movq $0, %rdx
-	div	%rsi
+	idiv	%rsi
 	addq	%rdi,	%rdx
 	movq	%rdx,	%rax
 
@@ -234,7 +234,7 @@ randlong:
 	popq %rdi
 	popq %rsi
 	movq $0, %rdx
-	div	%esi
+	idiv	%esi
 	addl	%edi,	%edx
 	movl	%edx,	%eax
 
