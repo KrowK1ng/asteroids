@@ -66,6 +66,25 @@ gameLoop:
 	movq    $0xFF0000000,     %rdi
 	call    ClearBackground
 
+
+# Set initial Player acceleration
+	movq    $player,    %r12
+	movl    8(%r12),    %edi
+	# Multiply with -0.046875 (1/32 + 1/64)
+	#                 .00001100
+	movl    $-0x10000,   %esi
+	call    mul
+	movl    %eax,       24(%r12)
+
+	movl    12(%r12),   %edi
+	# Multiply with -0.046875 (1/32 + 1/64)
+	#                 .00001100
+	movl    $-0x10000,   %esi
+	call    mul
+	movl    %eax,       28(%r12)
+
+
+# Player Input
 	checkDown   $'F
 	jne     .gl_fullscreen_skip
 	call    ToggleFullscreen
@@ -79,15 +98,6 @@ gameLoop:
 	movl    16(%rax),   %edx
 	call    b_init
 .gl_bullet_init_skip:
-
-# TODO Remove
-	checkPressed   $'A
-	jne     .ssssssssssssssss
-	call    a_init
-
-
-
-.ssssssssssssssss:
 
 # TODO SPAWN TIMER
 	movq    TIME,       %rax
@@ -132,29 +142,35 @@ gameLoop:
 	movl    16(%rax),   %edi
 	call    _cos
 	movl    %eax,       %edi
-	movl    $0x60000,    %esi
+	movl    $0xC0000,   %esi
+	call    mul
+	movl    $0x10000,    %esi
+	movl    %eax,       %edi
 	call    mul
 	movl    %eax,       %edi
 	movq    $player,    %rax
-	movl    %edi,       8(%rax)
+	addl    %edi,       24(%rax)
 
 	movl    16(%rax),   %edi
 	call    _sin
 	movl    %eax,       %edi
-	movl    $0x60000,    %esi
+	movl    $0xC0000,   %esi
+	call    mul
+	movl    $0x10000,    %esi
+	movl    %eax,       %edi
 	call    mul
 	movl    $0,         %edi
 	subl    %eax,       %edi
 	movq    $player,    %rax
-	movl    %edi,       12(%rax)
+	addl    %edi,       28(%rax)
 
 	jmp .end_set_speed
 
 
 .unset_speed:
-	movq    $player,    %rax
-	movl    $0,         8(%rax)
-	movl    $0,         12(%rax)
+/*	movq    $player,    %rax*/
+/*	movl    $0,         8(%rax)*/
+/*	movl    $0,         12(%rax)*/
 .end_set_speed:
 
 	checkPressed   $'C
@@ -181,12 +197,21 @@ gameLoop:
 	movq    $player,    %rax
 	movl    %edi,       12(%rax)
 
+	movl    $0,         24(%rax)
+	movl    $0,         28(%rax)
+
 	call    player_draw_warp
 
 
 .end_set_warp:
 
 
+	# Add acceleration to speed
+	movq    $player,    %rax
+	movl    24(%rax),   %edx
+	addl    %edx,       8(%rax)
+	movl    28(%rax),   %edx
+	addl    %edx,       12(%rax)
 
 	# Add speed
 	movq    $player, %rax
@@ -496,7 +521,9 @@ gameLoop:
 	# If lives are zero, go to Game Over TODO
 	decl    lives
 	jnz     .gl_no_gameover
+	call    network_write_score
 	call    sboard_add_score
+	call    network_parse_sboard
 	movq    $1,         %rax
 	movb    $0,         gstate
 	jmp     .gl_end

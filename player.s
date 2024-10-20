@@ -95,11 +95,13 @@
 .data
 player:
 .long 0 # x position
-.long 0 # y position
-.long 0 # x speed
-.long 0 # y speed
-.long 0 # angle
+.long 0 # y position   +4
+.long 0 # x speed      +8
+.long 0 # y speed      +12
+.long 0 # angle        +16
 .long 0 # vcnt - vulnerability count (4 frames * 8)
+.long 0 # x acceleration  +24
+.long 0 # y acceleration  +28
 
 player_p:
 .long 0

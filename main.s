@@ -110,6 +110,7 @@ main:
 	call    SetTargetFPS
 	call    HideCursor
 	call    sboard_init
+	call    network_parse_sboard
 
 .main_loop:
 		call    helpRender

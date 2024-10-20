@@ -1,6 +1,7 @@
 .global sboard_loop
 .global sboard_init
 .global sboard_add_score
+.global sboard_set
 
 .data
 bfmt1:   .asciz "Press [C] to warp."
@@ -235,5 +236,76 @@ sboard_add_score:
 .sboard_as_noswap:
 	addq    $20,            %rsi   # NAMESIZE
 	loop    .sboard_as_loop
+
+	ret
+
+# Takes a buffer in rdi
+sboard_set:
+	movq    $sboard_list,   %rsi
+	movq    $10,            %rcx     # SLISTSIZE
+
+.sboard_set_loop:
+	movq    $0,             (%rsi)
+	movq    $0,             8(%rsi)
+	movl    $-1,            %r8d
+
+	# Set the score
+	# If the negative number has more than a digit the name will display wrong
+	cmpb    $0,             1(%rdi)
+	je      .sboard_set_end
+	addq    $2,             %rdi
+	cmpb    $'-,            -2(%rdi)
+	je      .sboard_slnum_end
+
+	subq    $2,             %rdi
+	movq    $0,             %r8
+	.sboard_slnum:
+		cmpb    $';,            (%rdi)
+		je      .sboard_slnum_end
+		cmpb    $0,             (%rdi)
+		je      .sboard_set_end
+
+		# Multiply with 10 and add character
+		movq    $0,            %r9
+		movb    (%rdi),        %r9b
+		subb    $'0,           %r9b
+		movq    $10,           %rax
+		mulq    %r8
+		movq    %rax,          %r8
+		addq    %r9,           %r8
+
+		incq    %rdi
+		jmp     .sboard_slnum
+
+	.sboard_slnum_end:
+	movl    %r8d,           16(%rsi)
+	incq    %rdi
+
+	# Set the name
+	movq    $pname,         %r8
+	movzb   1(%r8),         %rdx
+	movq    %rsi,           %r9
+
+	.sboard_slname:
+		cmpb    $0,             (%rdi)
+		je      .sboard_set_end
+		cmpb    $'\n,           (%rdi)
+		je      .sboard_slname_end
+
+		movb    (%rdi),     %r8b
+		movb    %r8b,       (%r9)
+
+		incq    %rdi
+		incq    %r9
+		decq    %rdx
+		jnz     .sboard_slname
+	.sboard_slname_end:
+	incq    %rdi
+
+	addq    $20,            %rsi     # NAMESIZE
+	decq    %rcx
+	jnz     .sboard_set_loop
+
+.sboard_set_end:
 
 	ret
