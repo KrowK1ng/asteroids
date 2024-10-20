@@ -314,9 +314,8 @@ a_init:
 
 
 	movl	W, %edi
-	movl	%edi, %esi 
-	addl	$50,  %esi
-	call	randlong
+	addl	$80,  %edi
+	movl	%edi, %eax
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
 	movl	$0, %edi
@@ -332,9 +331,7 @@ a_init:
 	.case3:
 
 
-	movl	$-3, %edi
-	movl	$1, %esi 
-	call	randlong
+	mov $-80, %eax
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
 	movl	$0, %edi
@@ -355,10 +352,7 @@ a_init:
 	call	randlong
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
-	movl	$-3, %edi
-	movl	$1, %esi
-	call	randlong
-
+	movl	$-80, %eax
 	shl	$16, %eax
 	movl    %eax,	4(%rcx)  # random y pos
 
@@ -382,9 +376,8 @@ a_init:
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
 	movl	H, %edi
-	movl	%edi , %esi
-	addl	$50, %esi
-	call	randlong
+	addl	$80, %esi
+	movl	%edi , %eax
 
 	shl	$16, %eax
 	movl    %eax,	4(%rcx)  # random y pos
@@ -394,26 +387,45 @@ a_init:
 
 
 	movl	H, %r10d
-	movl	W, %r11d
-
 	shl	$15, %r10d
-	shl	$15, %r11d
 
+	movl    $0x040, %edi
+	movl    $0x100, %esi
+	call    randlong
+	shll    $8,    %eax
+	movl    %eax,  %edx
+	movl    4(%rcx),%eax
 	subl	%r10d, %eax
 	notl	%eax
 	incl	%eax
 	cdqe 
 	shr $7, %rax
+	movl    %eax,   %edi
+	movl    %edx,   %esi
+	call    mul
 	movl	%eax,	12(%rcx)
 
+	movl	W, %r11d
+	shl	$15, %r11d
+
+	movl    $0x040, %edi
+	movl    $0x100, %esi
+	call    randlong
+	shll    $8,    %eax
+	movl    %eax,  %edx
 	movl    (%rcx),	%eax
 	subl	%r11d, %eax
 	notl	%eax
 	incl	%eax
 	cdqe 
 	shr $7, %rax
+	movl    %eax,   %edi
+	movl    %edx,   %esi
+	call    mul
 	movl	%eax, 8(%rcx)
 
+
+/*	movq $meteors,	%rcx*/
 	.break:	
 	
 	movl	$0,	%edi

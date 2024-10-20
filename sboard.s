@@ -110,7 +110,7 @@ sboard_loop:
 # Draw title
 	movq    $140,           %r13     # X coord
 	movq    $30,            %r14     # Y coord
-	movl    $0xFFFFFFFF,    %r12d    # color
+	movl    $0xFFF589F3,    %r12d    # color
 
 	movq    $title1,        %rdi
 	movq    %r13,           %rsi
@@ -161,6 +161,7 @@ sboard_loop:
 	movl    %r12d,          %ecx
 	call    draw_text
 
+/*	movl    $0xFFFFFFFF,    %r12d    # color*/
 	addq    $39,            %r14
 	movq    $stitle,        %rdi
 	movq    $445,           %rsi
@@ -183,7 +184,7 @@ sboard_loop:
 	movl    16(%r12),       %edi
 	movq    $718,           %rsi
 	movq    %r14,           %rdx
-	movl    $0xFFFFFFFF,    %ecx
+	movl    $0xFF57ebff,    %ecx
 	call    draw_signed
 
 	addq    $20,            %r14

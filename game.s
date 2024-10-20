@@ -434,17 +434,19 @@ gameLoop:
 	je      .gl_a_remove_loop_end
 .gl_a_remove_loop:
 	movl    W,                %eax
-	shll    $17,              %eax
+	addl    $128,             %eax
+	shll    $16,              %eax
 	cmpl    %eax,             (%r12)
 	jge     .gl_a_rloop_remove
-	cmpl    $0,               (%r12)
+	cmpl    $-0x800000,       (%r12)
 	jl      .gl_a_rloop_remove
 
 	movl    H,                %eax
-	shll    $17,              %eax
+	addl    $128,             %eax
+	shll    $16,              %eax
 	cmpl    %eax,             4(%r12)
 	jge     .gl_a_rloop_remove
-	cmpl    $0,               4(%r12)
+	cmpl    $-0x800000,       4(%r12)
 	jl      .gl_a_rloop_remove
 
 	jmp     .gl_a_rloop_pre_end
