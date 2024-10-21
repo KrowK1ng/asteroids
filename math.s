@@ -187,13 +187,12 @@ pseudorand:
 	push	%rbp	
 	movq	%rsp,	%rbp
 
-	movq	TIME,	%rdi
 	movq	SEED, %rax
-	mul	%rdi
 
 	movq	PRIME,	%rdi
 	mul     %rdi
 	addq	ADD,	%rax
+	addq	TIME,	%rax
 	movq	%rax,	SEED
 
 	movq	%rbp, %rsp
