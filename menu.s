@@ -32,6 +32,8 @@ menu_loop:
 	call    GetCharPressed
 	cmpl    $0,         %eax
 	je      .ml_loop_end
+	cmpl    $' ,        %eax # We don't allow spaces in the name
+	je      .ml_loop_end
 
 	movq    $pname,     %rdi
 	movb    (%rdi),     %cl
