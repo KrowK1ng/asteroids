@@ -7,6 +7,7 @@
 .global pname
 .global gstate
 .global score
+.global GAMEPAD
 
 .data
 W: .quad 960
@@ -130,6 +131,11 @@ main:
 	call    network_parse_sboard
 
 .main_loop:
+
+	/*	movq $0, %rdi
+		call IsGamepadAvailable
+		movq %rax, GAMEPAD
+	*/
 		call    helpRender
 		cmpb    $0,         gstate
 		jne     .main_sloop_skip

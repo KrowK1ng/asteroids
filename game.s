@@ -1,3 +1,7 @@
+# GAMEPAD A (warp) -> 7
+# GAMEPAD X (shoot) -> 8
+
+
 .macro line x0, y0, x1, y1, col
 		movq	\x0, %rdi
 		movq 	\y0, %rsi
@@ -91,7 +95,15 @@ gameLoop:
 .gl_fullscreen_skip:
 
 	checkPressed   $'X
-	jne     .gl_bullet_init_skip
+	movb    %al,   %r12b
+	
+	movq $0, %rdi
+	movq $8, %rsi
+	call IsGamepadButtonPressed	
+# GAMEPAD X (shoot) -> 8
+
+	orb      %r12b, %al
+	jz      .gl_bullet_init_skip
 	movq    $player,    %rax
 	movl    (%rax),     %edi
 	movl    4(%rax),    %esi
@@ -113,7 +125,16 @@ gameLoop:
 	je      .gl_end
 
 	checkDown   KLEFT
-	jne     .end_increase_angle
+movb %al, %r12b
+
+	movq $0, %rdi
+	movq $4, %rsi
+	call IsGamepadButtonDown
+
+	orb %al, %r12b
+	jz     .end_increase_angle
+
+
 
 	movq    $player,    %rax
 	addl    $0x02000,   16(%rax)
@@ -124,7 +145,14 @@ gameLoop:
 .end_increase_angle:
 
 	checkDown   KRIGHT
-	jne     .end_decrease_angle
+movb %al, %r12b
+
+	movq $0, %rdi
+	movq $2, %rsi
+	call IsGamepadButtonDown
+
+	orb %al, %r12b
+	jz     .end_decrease_angle
 
 	movq    $player,    %rax
 	subl    $0x02000,   16(%rax)
@@ -135,7 +163,14 @@ gameLoop:
 .end_decrease_angle:
 
 	checkDown   KUP
-	jne     .unset_speed
+	movb %al, %r12b
+
+	movq $0, %rdi
+	movq $1, %rsi
+	call IsGamepadButtonDown
+
+	orb %al, %r12b
+	jz     .unset_speed
 
 .set_speed:
 	movq    $player,    %rax
@@ -174,7 +209,14 @@ gameLoop:
 .end_set_speed:
 
 	checkPressed   $'C
-	jne     .end_set_warp
+	movb %al, %r12b
+	movq $0, %rdi
+	movq $7, %rsi
+	call IsGamepadButtonPressed
+
+# GAMEPAD A (warp) -> 7
+	orb %al, %r12b
+	jz     .end_set_warp
 
 .set_warp:
 	movq    $player,    %rax
