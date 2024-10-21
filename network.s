@@ -1,5 +1,6 @@
 .global network_parse_sboard
 .global network_write_score
+.global usenet
 
 .data
 main_url: .asciz "http://savcik.xyz:9002"

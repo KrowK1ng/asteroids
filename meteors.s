@@ -291,7 +291,7 @@ a_init:
 	call randquad
 	addq %rcx, %rax
 
-	cmpq $0, %rax  # asteroids don't spawn 1/5 for shits and iggles
+	cmpq $0, %rax  # asteroids don't spawn 1/5 for shits 💩 and iggles 🤣
 	je .end
 
 	movq	$meteors,	%r11
@@ -380,7 +380,7 @@ a_init:
 
 
 	movl	W, %edi
-	addl	$80,  %edi
+	addl	$80,  %edi      # BORDERDELTA
 	movl	%edi, %eax
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
@@ -397,7 +397,7 @@ a_init:
 	.case3:
 
 
-	mov $-80, %eax
+	movl	$-80, %eax      # BORDERDELTA
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
 	movl	$0, %edi
@@ -418,7 +418,7 @@ a_init:
 	call	randlong
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
-	movl	$-80, %eax
+	movl $-80, %eax          # BORDERDELTA
 	shl	$16, %eax
 	movl    %eax,	4(%rcx)  # random y pos
 
@@ -442,7 +442,7 @@ a_init:
 	shl	$16, %eax
 	movl	%eax,	(%rcx)   # random x pos
 	movl	H, %edi
-	addl	$80, %esi
+	addl	$80, %edi       # BORDERDELTA
 	movl	%edi , %eax
 
 	shl	$16, %eax

@@ -15,6 +15,7 @@ TIME:  .quad 0
 score:     .long 0
 draw_col:   .long 0
 game_name:  .asciz "Asteroids in Assembly"
+arg_nonet:  .asciz "-n"
 pname:
 	.byte  0, 15  # NAMESIZE
 	.space  16    # NAMESIZE
@@ -79,9 +80,25 @@ putBitmap:
 	ret
 
 
+# -n no internet
 main:
 	pushq   %rbp
 	movq    %rsp,       %rbp
+
+
+	# Read arguments
+	cmpl    $1,         %edi
+	jle     .main_arg_done
+
+	movq    8(%rsi),    %rdi
+	movq    $arg_nonet, %rsi
+	call    strcmp
+	cmpq    $0,         %rax
+	jne     .main_arg_done
+
+	movb    $0,         usenet
+
+.main_arg_done:
 
 	# Enable resizable
 	movq    $0x4,      %rdi
