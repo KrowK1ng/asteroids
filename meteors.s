@@ -2,7 +2,7 @@
 .global a_draw
 .global a_remove
 .global a_destroy
-.global a_init
+.global a_spawn
 .global a_rem_middle
 .global meteors
 
@@ -131,7 +131,7 @@ meteor_init_types:
 	movl    $0,         16(%rdi)
 	movl    $0x1000,         20(%rdi)
 	movb    $2,         32(%rdi)
-*/
+//*/
 
 
 	movq    %rbp,   %rsp
@@ -258,6 +258,28 @@ a_draw:
 	ret
 
 
+a_spawn:
+	pushq	 %rbp
+	movq	 %rsp,	%rbp
+
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	movq %rax, %rcx
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	addq %rcx, %rax
+
+	cmpq $0, %rax  # asteroids don't spawn 1/5 for shits 💩 and iggles 🤣
+	je   .as_end
+
+	call    a_init
+
+.as_end:
+	movq	%rbp,	%rsp
+	popq	%rbp
+	ret
 
 /*
 
@@ -283,20 +305,10 @@ a_init:
 	pushq	%rbx	# random number keeper
 	pushq	%rbx
 		
-	movq $0, %rdi
-	movq $2, %rsi
-	call randquad
-	movq %rax, %rcx
-	movq $0, %rdi
-	movq $2, %rsi
-	call randquad
-	addq %rcx, %rax
-
-	cmpq $0, %rax  # asteroids don't spawn 1/5 for shits 💩 and iggles 🤣
-	je .end
 
 	movq	$meteors,	%r11
 	cmpq	$256,	8(%r11)
+	movq $0, %rdi
 	jge	.end
 	
 	movq $0, %rdi
@@ -522,9 +534,9 @@ a_init:
 	call randlong
 	movb    %al,	32(%rcx)
 
-
-	
+	movq $1, %rdi
 .end:
+	movq %rdi,      %rax
 	popq %rbx
 	popq %rbx
 	movq	%rbp,	%rsp
@@ -556,7 +568,7 @@ a_remove:
 	movq    $0,             %rax
 	movq    $d_armsg,       %rdi
 	movq    meteors,        %rsi
-	call    printf
+/*	call    printf*/
 	popq    %rax
 
 	ret
@@ -586,7 +598,9 @@ a_destroy:
 	# TODO, do size while creating
 
 	call     a_init
-	call     a_init
+	cmpq     $0,            %rax
+	je       .adst_end
+
 	movq     $meteors,      %rdi
 	movq     (%rdi),        %rax
 	movq     $48,           %rcx
@@ -598,7 +612,17 @@ a_destroy:
 	movl     %r14d,         4(%rdi)
 	movb     %r12b,         32(%rdi)
 
-	subq     $48,           %rdi
+	call     a_init
+	cmpq     $0,            %rax
+	je       .adst_end
+
+	movq     $meteors,      %rdi
+	movq     (%rdi),        %rax
+	movq     $48,           %rcx
+	mulq     %rcx
+	addq     %rax,          %rdi
+	subq     $32,           %rdi
+
 
 	movl     %r13d,         (%rdi)
 	movl     %r14d,         4(%rdi)

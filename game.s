@@ -115,7 +115,7 @@ gameLoop:
 	movq    TIME,       %rax
 	andq    $31,        %rax
 	jnz     .ssssssssssssssssx
-	call    a_init
+	call    a_spawn
 .ssssssssssssssssx:
 
 	checkDown   $'Q
