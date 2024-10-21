@@ -3,6 +3,7 @@
 .global a_remove
 .global a_destroy
 .global a_init
+.global a_rem_middle
 .global meteors
 
 
@@ -455,7 +456,7 @@ a_init:
 	movl	H, %r10d
 	shl	$15, %r10d
 
-	movl    $0x040, %edi
+	movl    $0x080, %edi
 	movl    $0x100, %esi
 	call    randlong
 	shll    $8,    %eax
@@ -470,11 +471,16 @@ a_init:
 	movl    %edx,   %esi
 	call    mul
 	movl	%eax,	12(%rcx)
+	movl    $0,         %edi
+	movl    $0x23000,  %esi
+	call    randlong
+	subl    $0x11800,   %eax
+	addl	%eax,	12(%rcx)
 
 	movl	W, %r11d
 	shl	$15, %r11d
 
-	movl    $0x040, %edi
+	movl    $0x080, %edi
 	movl    $0x100, %esi
 	call    randlong
 	shll    $8,    %eax
@@ -489,6 +495,11 @@ a_init:
 	movl    %edx,   %esi
 	call    mul
 	movl	%eax, 8(%rcx)
+	movl    $0,         %edi
+	movl    $0x23000,  %esi
+	call    randlong
+	subl    $0x11800,   %eax
+	addl	%eax,	8(%rcx)
 
 
 /*	movq $meteors,	%rcx*/
@@ -545,7 +556,7 @@ a_remove:
 	movq    $0,             %rax
 	movq    $d_armsg,       %rdi
 	movq    meteors,        %rsi
-/*	call    printf*/
+	call    printf
 	popq    %rax
 
 	ret
@@ -599,6 +610,59 @@ a_destroy:
 	movq    -16(%rbp),  %r13
 	movq    -24(%rbp),  %r14
 
+	movq    %rbp,   %rsp
+	popq    %rbp
+	ret
+
+
+a_rem_middle:
+	pushq   %rbp
+	movq    %rsp,   %rbp
+
+	subq    $16,        %rsp
+	movq    %r12,       -8(%rbp)
+	movq    %rbx,       -16(%rbp)
+
+	movq    $meteors,         %r12
+	movq    (%r12),           %rbx      # rbx = a_cnt
+	addq    $16,              %r12      # r12 = a_pnt
+
+	cmpq    $0,               %rbx
+	je      .arm_end
+.arm_remove_loop:
+	movl    W,                %eax
+	shrl    $1,               %eax
+	addl    $256,             %eax
+	shll    $16,              %eax
+	cmpl    %eax,             (%r12)
+	jg      .arm_rloop_pre_end
+	subl    $0x2000000,       %eax
+	cmpl    %eax,             (%r12)
+	jl      .arm_rloop_pre_end
+
+	movl    H,                %eax
+	shrl    $1,               %eax
+	addl    $256,             %eax
+	shll    $16,              %eax
+	cmpl    %eax,             4(%r12)
+	jg      .arm_rloop_pre_end
+	subl    $0x2000000,       %eax
+	cmpl    %eax,             4(%r12)
+	jl      .arm_rloop_pre_end
+
+	movq    %r12,             %rdi
+	call    a_remove
+	subq    $48,              %r12      # r12 = a_pnt-- MSIZE
+
+.arm_rloop_pre_end:
+	addq    $48,              %r12      # r12 = a_pnt++ MSIZE
+	decq    %rbx
+	jnz     .arm_remove_loop
+
+
+.arm_end:
+	movq    -8(%rbp),   %r12
+	movq    -16(%rbp),  %r13
 	movq    %rbp,   %rsp
 	popq    %rbp
 	ret

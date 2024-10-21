@@ -425,7 +425,7 @@ gameLoop:
 .gl_b_remove_loop_end:
 
 
-# Remove Meteorites TODO (Take coordinates outside screen)
+# Remove Meteorites
 	movq    $meteors,         %r12
 	movq    (%r12),           %rbx      # rbx = a_cnt
 	addq    $16,              %r12      # r12 = a_pnt
@@ -533,6 +533,7 @@ gameLoop:
 .gl_no_gameover:
 
 # Respawn the player
+	call    a_rem_middle
 	call    player_init
 	movq    $player,%rax
 	movl    $0,     20(%rax)    # Make him invulnerable
