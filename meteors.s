@@ -21,12 +21,19 @@ meteors:
 d_armsg: .asciz "Asteroid removed. %d asteroids left.\n"
 
 mtype_1:
-	.quad 4
-	.long -0x100000, 0x100000
-	.long 0x100000, 0x100000
-	.long 0x100000, -0x100000
-	.long -0x100000, -0x100000
-	.long -0x100000, 0x100000
+	.quad 10
+	.long 0x0C0000, 0x140000
+	.long 0x140000, -0x040000
+	.long 0x0C0000, -0x0C0000
+	.long 0x040000, -0x0C0000
+	.long -0x040000, -0x140000
+	.long -0x140000, -0x0C0000
+	.long -0x0C0000, -0x040000
+	.long -0x0C0000, 0x040000
+	.long -0x040000, 0x0C0000
+	.long -0x040000, 0x040000
+	.long 0x0C0000, 0x140000
+
 
 mtype_2:
 	.quad 6
@@ -268,13 +275,25 @@ a_draw:
 	movl    $0,         20(%rdi)	#va
 	movb    $1,         32(%rdi)	#size
 */
-# f a_init(int type, int size)
+# f a_init()
 a_init:
 	pushq	 %rbp
 	movq	 %rsp,	%rbp 
 	pushq	%rbx	# random number keeper
 	pushq	%rbx
-	
+		
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	movq %rax, %rcx
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	addq %rcx, %rax
+
+	cmpq $0, %rax  # asteroids don't spawn 1/5 for shits and iggles
+	je .end
+
 	movq	$meteors,	%r11
 	cmpq	$256,	8(%r11)
 	jge	.end
