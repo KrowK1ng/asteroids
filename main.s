@@ -23,7 +23,8 @@ pname:
 gstate: .byte 0   # 0 -> sboard (scoreboard)
                   # 1 -> menu (write name)
                   # 2 -> game
-rentex: .quad 0
+rentex:  .quad 0
+GAMEPAD: .quad 0
 
 .text
 # void putBitmap(int64* addr, int x, int y)
@@ -132,10 +133,10 @@ main:
 
 .main_loop:
 
-	/*	movq $0, %rdi
+		movq $0, %rdi
 		call IsGamepadAvailable
 		movq %rax, GAMEPAD
-	*/
+
 		call    helpRender
 		cmpb    $0,         gstate
 		jne     .main_sloop_skip

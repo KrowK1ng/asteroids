@@ -119,9 +119,8 @@ _cos:
 	movq    %r14,   -24(%rbp)   # a   -> 14
 	movq    %r15,   -32(%rbp)   # ans -> 15
 
-	shlq    $32,    %rdi        # keep only 32 bits
-	shrq    $32,    %rdi
-	movq    %rdi,   %r12        # r12 = x
+	movq    $0xFFFFFFFF, %r12   # keep only 32 bits
+	andq    %rdi,   %r12        # r12 = x
 
 	movq    $0,     %r13        # cnt = 0
 	movq    $1,     %r14        # a   = 1

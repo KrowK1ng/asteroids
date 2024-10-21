@@ -208,6 +208,8 @@ movb %al, %r12b
 /*	movl    $0,         12(%rax)*/
 .end_set_speed:
 
+	call control_player
+
 	checkPressed   $'C
 	movb %al, %r12b
 	movq $0, %rdi
