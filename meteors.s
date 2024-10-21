@@ -51,6 +51,36 @@ mtype_3:
 	.long 0x180000, 0x080000
 
 
+mtype_4:
+	.quad 9
+	.long 0x000000, 0x060000
+	.long -0x0C0000, 0x120000
+	.long -0x180000, 0x060000
+	.long -0x0C0000, -0x120000
+	.long 0x000000, -0x060000
+	.long 0x0C0000, -0x120000
+	.long 0x0C0000, -0x060000
+	.long 0x180000, 0x060000
+	.long 0x0C0000, 0x120000
+	.long 0x000000, 0x060000
+
+mtype_5:
+	.quad 10
+
+	.long 0x100000, 0x00000
+	.long 0x0AAAAA, 0x0AAAAA
+	.long 0x02AAAA, 0x0EAAAA
+	.long -0x0AAAAA, 0x0AAAAA
+	.long -0x100000, 0x055555
+	.long -0x0EAAAA, 0x000000
+	.long -0x100000, -0x0AAAAA
+	.long -0x0AAAAA, -0x0EAAAA
+	.long 0x02AAAA, -0x0AAAAA
+	.long 0x0EAAAA, -0x0AAAAA
+	.long 0x100000, 0x00000
+
+
+
 # struct asteroid {
 #   f x, y;
 #   f vx, vy;
@@ -252,13 +282,23 @@ a_init:
 	movq $0, %rdi
 	movq $2, %rsi
 	call randquad
-	.brak:	
+	movq %rax, %rcx
+	movq $0, %rdi
+	movq $2, %rsi
+	call randquad
+	addq %rcx, %rax
 
 	cmpq	$1,	%rax
 	je	.fst_type
 
 	cmpq	$2,	%rax
 	je	.snd_type
+	
+	cmpq	$3, %rax
+	je	.frt_type
+
+	cmpq	$4, %rax
+	je	.fth_type
 
 	jmp	.trd_type
 
@@ -272,6 +312,13 @@ a_init:
 
 .trd_type:
 	movq $mtype_3, %rdi
+	jmp	.continue
+.frt_type:
+	movq $mtype_4, %rdi
+	jmp	.continue
+
+.fth_type:
+	movq $mtype_5, %rdi
 	jmp	.continue
 
 .continue:
