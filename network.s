@@ -3,8 +3,8 @@
 .global usenet
 
 .data
-main_url: .asciz "http://savcik.xyz:9002"
-s_ask:    .asciz "/score"
+main_url: .asciz "http://gianmariapiergianni.com"
+s_ask:    .asciz "/scoreboard"
 s_wr1:    .asciz "/set?score="
 s_wr2:    .asciz "?name="
 realurl:  .space 4096
