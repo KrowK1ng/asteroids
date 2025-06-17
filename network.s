@@ -3,7 +3,7 @@
 .global usenet
 
 .data
-main_url: .asciz "http://gianmariapiergianni.com"
+main_url: .asciz "https://gianmariapiergianni.com"
 s_ask:    .asciz "/scoreboard"
 s_wr1:    .asciz "/set?score="
 s_wr2:    .asciz "?name="
